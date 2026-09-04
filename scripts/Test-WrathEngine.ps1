@@ -41,9 +41,11 @@ Assert-Contract ($prediction -notmatch 'UseAction\(|SetTarget|QueuedActionId\s*=
 $project = Get-Content (Join-Path $root 'Engine/VieriWrathEngine.csproj') -Raw
 $wrathPlugin = Get-Content (Join-Path $source 'WrathCombo.cs') -Raw
 $ipcProvider = Get-Content (Join-Path $source 'Services/IPC/Provider.cs') -Raw
+$wrathConfiguration = Get-Content (Join-Path $source 'Core/Configuration.cs') -Raw
 Assert-Contract ($project -notmatch 'Upstream/WrathCombo/Core/ActionReplacer.cs' -and $project -match 'WrathCombo.API') 'Full action replacement and the public IPC contract must be compiled'
 Assert-Contract ($wrathPlugin -match 'Service\.AutoRotationController\s*=\s*new AutoRotationController' -and $wrathPlugin -match 'IPC\s*=\s*Provider\.Init\(\)') 'Full Auto-Rotation and IPC provider must initialize'
 Assert-Contract ($ipcProvider -match '\[EzIPC\]' -and $ipcProvider -match 'IsCurrentJobAutoRotationReady') 'Wrath compatibility provider must expose automation readiness'
+Assert-Contract ($wrathConfiguration -notmatch 'HideMajorChangesForVersion\s*=\s*\r?\n\s*Svc\.PluginInterface' -and $wrathConfiguration -match 'typeof\(Configuration\)\.Assembly\.GetName\(\)\.Version') 'Hosted Wrath configuration construction must not require ECommons services before engine initialization'
 $switchPlugin = Get-Content (Join-Path $root 'SwitchRuntime/Plugin.cs') -Raw
 Assert-Contract ($switchPlugin -match 'WrathSwitch\.BeginAutomation' -and $switchPlugin -match 'MainCommand = "/wrathswitch"') 'Embedded switch must retain its legacy IPC and command contracts'
 $safety = @{

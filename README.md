@@ -63,5 +63,10 @@ original configuration files are left untouched. Disable the separate Wrath
 Combo and VieriWrathSwitch plugins, then reload once so only the suite owns the
 action hook and compatibility IPC providers.
 
+Version 2.0.0.1 corrects the initial unified-suite startup order so the hosted
+Wrath configuration can be created before ECommons publishes its global plugin
+services. This keeps the integrated IPC provider available to the switch from
+the first frame after loading.
+
 The authorized Hilda display reference is pinned separately in
 `upstream/hilda.lock.json`; see `docs/HILDA_REFERENCE.md`.

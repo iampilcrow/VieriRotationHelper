@@ -464,8 +464,12 @@ public partial class Configuration : IPluginConfiguration
     ///     specific version.
     /// </summary>
     /// <seealso cref="MajorChangesWindow" />
+    // The unified suite constructs this configuration before ECommons has
+    // populated Svc.PluginInterface. Standalone Wrath happened to initialize
+    // that service first, so consulting it from a field initializer crashes
+    // the hosted engine during plugin startup.
     public Version HideMajorChangesForVersion =
-        Svc.PluginInterface.Manifest.AssemblyVersion;
+        typeof(Configuration).Assembly.GetName().Version ?? new Version(0, 0, 0, 0);
 
     #endregion
 
