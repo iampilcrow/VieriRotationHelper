@@ -88,7 +88,8 @@ internal sealed class RotationBarWindow : Window
         if (plugin.Configuration.ShowHotkeys && frame.Anchor is { } anchor)
         {
             var sourceAction = frame.EffectiveMode == RotationMode.Aoe ? anchor.AoeAction : anchor.SingleTargetAction;
-            var key = plugin.Hotkeys.Resolve(suggestion.ActionId, sourceAction, lead && frame.WrathLoaded);
+            var key = plugin.Hotkeys.Resolve(suggestion.ActionId, sourceAction,
+                lead && frame.WrathLoaded, suggestion.UsesEntryButton);
             if (key != null)
                 Text(key, pos + new Vector2(-2f, -6f), 26f * .7f * scale, 0xFFFFFFFF);
         }

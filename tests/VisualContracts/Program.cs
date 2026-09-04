@@ -14,6 +14,7 @@ foreach (var (first, second, third) in new[] {
 {
     var consolidated = new ActionBinding[] { new(first, second, "1"), new(second, second, "2"), new(third, third, "3") };
     Check(HotbarKeySelection.Resolve(consolidated, second, first, true) == "1", "Consolidated lead uses its working anchor");
+    Check(HotbarKeySelection.Resolve(consolidated, third, first, false, true) == "1", "Consolidated forecast keeps the entry-button hotkey");
     var separate = new ActionBinding[] { new(first, first, "1"), new(second, second, "2"), new(third, third, "3") };
     Check(HotbarKeySelection.Resolve(separate, second, first, true) == "2", "Disabling consolidation changes to the real second key");
     Check(HotbarKeySelection.Resolve(separate, third, first, false) == "3", "Third action uses its actual key without Wrath");

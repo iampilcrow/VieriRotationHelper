@@ -17,6 +17,7 @@ internal sealed class CombatOnlyBridge : IDisposable
 {
     private const string CallbackPrefix = "WrathSwitch$CombatOnly";
     private readonly IPluginLog log;
+    private readonly string leaseInternalName;
     private readonly ICallGateProvider<int, string, object> callback;
     private readonly ICallGateSubscriber<string, string, string?, Guid?> registerLease;
     private readonly ICallGateSubscriber<AutoRotationConfigOption, object?> getConfig;
@@ -27,9 +28,11 @@ internal sealed class CombatOnlyBridge : IDisposable
     private long nextEnforcement;
     private bool releasing;
 
-    public CombatOnlyBridge(IDalamudPluginInterface pluginInterface, IPluginLog log)
+    public CombatOnlyBridge(IDalamudPluginInterface pluginInterface, IPluginLog log,
+        string leaseInternalName = "WrathSwitch")
     {
         this.log = log;
+        this.leaseInternalName = leaseInternalName;
         callback = pluginInterface.GetIpcProvider<int, string, object>(
             $"{CallbackPrefix}.WrathComboCallback");
         callback.RegisterAction(OnLeaseCancelled);
@@ -81,7 +84,7 @@ internal sealed class CombatOnlyBridge : IDisposable
             // duplicate Set result does not refresh lease priority, so recreate it before reasserting.
             ReleaseLease();
             lease ??= registerLease.InvokeFunc(
-                "WrathSwitch", "VieriWrathSwitch - In Combat Only", CallbackPrefix);
+                leaseInternalName, "VieriWrathSwitch - In Combat Only", CallbackPrefix);
             if (lease is not { } activeLease)
                 return false;
 

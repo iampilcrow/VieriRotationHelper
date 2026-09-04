@@ -4,8 +4,13 @@ internal readonly record struct ActionBinding(uint Action, uint EffectiveAction,
 
 internal static class HotbarKeySelection
 {
-    internal static string? Resolve(IReadOnlyList<ActionBinding> bindings, uint action, uint anchor, bool preferAnchor)
+    internal static string? Resolve(IReadOnlyList<ActionBinding> bindings, uint action, uint anchor,
+        bool preferAnchor, bool forceAnchor = false)
     {
+        if (forceAnchor)
+            foreach (var slot in bindings)
+                if (slot.Action == anchor)
+                    return slot.Key;
         if (preferAnchor)
             foreach (var slot in bindings)
                 if (slot.Action == anchor && slot.EffectiveAction == action)

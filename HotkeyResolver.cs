@@ -15,7 +15,7 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
     private ulong character;
     private uint job;
 
-    internal unsafe string? Resolve(uint action, uint anchor, bool liveLead)
+    internal unsafe string? Resolve(uint action, uint anchor, bool liveLead, bool forceAnchor = false)
     {
         Refresh();
         var manager = ActionManager.Instance();
@@ -24,7 +24,7 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
         foreach (var binding in bindings)
             current.Add(new(binding.Action, SuggestionActionId.IsItem(binding.Action)
                 ? binding.Action : manager->GetAdjustedActionId(binding.Action), binding.Key));
-        return HotbarKeySelection.Resolve(current, action, anchor, liveLead);
+        return HotbarKeySelection.Resolve(current, action, anchor, liveLead, forceAnchor);
     }
 
     private unsafe void Refresh()

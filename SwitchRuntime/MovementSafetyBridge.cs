@@ -14,6 +14,7 @@ internal sealed class MovementSafetyBridge : IDisposable
     private const string CallbackPrefix = "WrathSwitch$ManualControl";
     private readonly ICommandManager commandManager;
     private readonly IPluginLog log;
+    private readonly string leaseInternalName;
     private readonly ICallGateSubscriber<IReadOnlyList<string>, bool, IReadOnlyList<string>> bossModConfiguration;
     private readonly ICallGateSubscriber<string> bossModGetActivePreset;
     private readonly ICallGateSubscriber<string, bool> bossModSetActivePreset;
@@ -46,10 +47,11 @@ internal sealed class MovementSafetyBridge : IDisposable
     private bool releasingWrathLease;
 
     public MovementSafetyBridge(IDalamudPluginInterface pluginInterface, ICommandManager commandManager,
-        IPluginLog log)
+        IPluginLog log, string leaseInternalName = "WrathSwitch")
     {
         this.commandManager = commandManager;
         this.log = log;
+        this.leaseInternalName = leaseInternalName;
         bossModConfiguration =
             pluginInterface.GetIpcSubscriber<IReadOnlyList<string>, bool, IReadOnlyList<string>>(
                 "BossMod.Configuration");
@@ -229,7 +231,7 @@ internal sealed class MovementSafetyBridge : IDisposable
         if (wrathLease == null)
         {
             wrathLease = TryInvoke(() => wrathRegisterLease.InvokeFunc(
-                "WrathSwitch", "VieriWrathSwitch - Manual Movement / Targeting Only", CallbackPrefix));
+                leaseInternalName, "VieriWrathSwitch - Manual Movement / Targeting Only", CallbackPrefix));
         }
 
         if (wrathLease is not { } lease)

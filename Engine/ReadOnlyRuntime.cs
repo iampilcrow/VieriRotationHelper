@@ -18,7 +18,8 @@ using WrathCombo.Services.IPC;
 
 namespace WrathCombo;
 
-public sealed record Decision(uint ActionId, uint EntryAction, string Preset, string Detail);
+public sealed record Decision(uint ActionId, uint EntryAction, string Preset, string Detail,
+    bool UsesEntryButton);
 
 /// <summary>Hosts the pinned Wrath engine and provides a side-effect-free prediction
 /// context to the suggestion overlay.</summary>
@@ -89,14 +90,14 @@ public sealed class ReadOnlyRuntime : IDisposable
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (!Player.Available || Player.IsDead)
-            return new(0, 0, "", "Waiting for a living character.");
+            return new(0, 0, "", "Waiting for a living character.", false);
         if (CustomComboFunctions.InPvP())
-            return new(0, 0, "", "The bundled recommendations are for PvE, not PvP.");
+            return new(0, 0, "", "The bundled recommendations are for PvE, not PvP.", false);
 
         var candidates = Service.ActionReplacer.CustomCombos
             .Where(c => IsRotation(c.Preset, job, aoe)).ToArray();
         if (candidates.Length == 0)
-            return new(0, 0, "", "No upstream PvE rotation is available for this job/mode.");
+            return new(0, 0, "", "No upstream PvE rotation is available for this job/mode.", false);
 
         // Config constructors carry Wrath's real default thresholds/options.
         foreach (var type in candidates.Select(c => c.GetType().DeclaringType)
@@ -124,7 +125,7 @@ public sealed class ReadOnlyRuntime : IDisposable
         var metadata = PresetStorage.AllPresets[combo.Preset];
         var entry = metadata.ReplaceSkill?.ActionIDs.FirstOrDefault() ?? 0;
         if (entry == 0)
-            return new(0, 0, combo.Preset.ToString(), "Upstream rotation has no verified entry action.");
+            return new(0, 0, combo.Preset.ToString(), "Upstream rotation has no verified entry action.", false);
 
         try
         {
@@ -133,18 +134,19 @@ public sealed class ReadOnlyRuntime : IDisposable
             var action = combo.Suggest(entry);
             if (action > Combos.PvE.All.Items && action < Combos.PvE.All.Pomanders &&
                 Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Item>().TryGetRow(action - Combos.PvE.All.Items, out _))
-                return new(action, entry, combo.Preset.ToString(), "Wrath recommends this consumable; press its actual item hotkey manually.");
+                return new(action, entry, combo.Preset.ToString(), "Wrath recommends this consumable; press its actual item hotkey manually.", false);
             // Wrath uses synthetic sentinel actions to request that nothing be cast.
             if (!ActionWatching.ActionSheet.ContainsKey(action))
-                return new(0, entry, combo.Preset.ToString(), "Wrath's rules recommend waiting.");
+                return new(0, entry, combo.Preset.ToString(), "Wrath's rules recommend waiting.", configured != null);
             action = NativeAdjust(action);
             if (job == 36 && CustomComboFunctions.IsBlueMageSpellbookAction(action) && !CustomComboFunctions.IsSpellActive(action))
-                return new(0, entry, combo.Preset.ToString(), "The recommended Blue Mage spell is not set in the spellbook.");
+                return new(0, entry, combo.Preset.ToString(), "The recommended Blue Mage spell is not set in the spellbook.", configured != null);
             if (!CustomComboFunctions.ActionLearned(action))
-                return new(0, entry, combo.Preset.ToString(), "Recommended action is not learned at the current level.");
+                return new(0, entry, combo.Preset.ToString(), "Recommended action is not learned at the current level.", configured != null);
             return new(action, entry, combo.Preset.ToString(),
                 configured != null ? "Pinned Wrath evaluator with your Wrath options." :
-                "Independent Wrath evaluator; hotbar consolidation is not required.");
+                "Independent Wrath evaluator; hotbar consolidation is not required.",
+                configured != null);
         }
         finally
         {

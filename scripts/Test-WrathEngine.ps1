@@ -48,6 +48,14 @@ Assert-Contract ($ipcProvider -match '\[EzIPC\]' -and $ipcProvider -match 'IsCur
 Assert-Contract ($wrathConfiguration -notmatch 'HideMajorChangesForVersion\s*=\s*\r?\n\s*Svc\.PluginInterface' -and $wrathConfiguration -match 'typeof\(Configuration\)\.Assembly\.GetName\(\)\.Version') 'Hosted Wrath configuration construction must not require ECommons services before engine initialization'
 $switchPlugin = Get-Content (Join-Path $root 'SwitchRuntime/Plugin.cs') -Raw
 Assert-Contract ($switchPlugin -match 'WrathSwitch\.BeginAutomation' -and $switchPlugin -match 'MainCommand = "/wrathswitch"') 'Embedded switch must retain its legacy IPC and command contracts'
+Assert-Contract ($switchPlugin -match 'embedded \? PluginInterface\.InternalName : "WrathSwitch"') 'Embedded switch leases must use the loaded suite internal name'
+foreach ($bridge in @('RotationControlBridge.cs','CombatOnlyBridge.cs','MovementSafetyBridge.cs')) {
+    $bridgeSource = Get-Content (Join-Path $root "SwitchRuntime/$bridge") -Raw
+    Assert-Contract ($bridgeSource -match 'leaseInternalName') "$bridge must register leases with the owning plugin identity"
+}
+$hotbar = Get-Content (Join-Path $root 'HotbarKeySelection.cs') -Raw
+$barWindow = Get-Content (Join-Path $root 'Windows/RotationBarWindow.cs') -Raw
+Assert-Contract ($hotbar -match 'forceAnchor' -and $barWindow -match 'suggestion\.UsesEntryButton') 'One-button forecasts must retain their consolidated entry hotkey'
 $safety = @{
     'Core/ConfigurationHelper.cs' = 'if \(ReadOnlyRuntime.Active\)\s*return;'
     'Combos/PvE/ALL/Items.cs' = 'if \(ReadOnlyRuntime.Active\) return;'

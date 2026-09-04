@@ -69,12 +69,13 @@ public sealed class Plugin : IDalamudPlugin
             Configuration.InitializeEmbedded(embeddedSave);
         else
             Configuration.Initialize(PluginInterface);
+        var leaseInternalName = embedded ? PluginInterface.InternalName : "WrathSwitch";
         wrath = new WrathBridge(PluginInterface);
-        rotationControl = new RotationControlBridge(PluginInterface, Log);
+        rotationControl = new RotationControlBridge(PluginInterface, Log, leaseInternalName);
         beginAutomation = PluginInterface.GetIpcProvider<bool>("WrathSwitch.BeginAutomation");
         beginAutomation.RegisterFunc(rotationControl.BeginAutomation);
-        movementSafety = new MovementSafetyBridge(PluginInterface, CommandManager, Log);
-        combatOnly = new CombatOnlyBridge(PluginInterface, Log);
+        movementSafety = new MovementSafetyBridge(PluginInterface, CommandManager, Log, leaseInternalName);
+        combatOnly = new CombatOnlyBridge(PluginInterface, Log, leaseInternalName);
 
         rotationWindow = new RotationWindow(this) { IsOpen = Configuration.ShowWindow };
         settingsWindow = new SettingsWindow(this);

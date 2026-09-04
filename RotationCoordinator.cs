@@ -37,7 +37,7 @@ internal sealed class RotationCoordinator(
         {
             var exact = wrath.GetAdjusted(sourceAction);
             lead = new RotationSuggestion(exact, effectiveMode, SuggestionSource.LiveWrath, true,
-                "Exact action currently exposed by Wrath Combo for this rotation entry point.");
+                "Exact action currently exposed by Wrath Combo for this rotation entry point.", true);
             parity = exact == embeddedLead.ActionId;
         }
         else

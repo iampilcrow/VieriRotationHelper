@@ -34,7 +34,8 @@ internal sealed record RotationSuggestion(
     RotationMode Mode,
     SuggestionSource Source,
     bool Authoritative,
-    string Reason);
+    string Reason,
+    bool UsesEntryButton = false);
 
 internal sealed record RotationFrame(
     RotationAnchor? Anchor,

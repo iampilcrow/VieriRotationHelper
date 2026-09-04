@@ -19,6 +19,7 @@ internal sealed class RotationControlBridge : IDisposable
     private static readonly TimeSpan ReadinessGracePeriod = TimeSpan.FromSeconds(8);
 
     private readonly IPluginLog log;
+    private readonly string leaseInternalName;
     private readonly ICallGateProvider<int, string, object> callback;
     private readonly ICallGateSubscriber<bool> ipcReady;
     private readonly ICallGateSubscriber<string, string, string?, Guid?> registerLease;
@@ -39,9 +40,11 @@ internal sealed class RotationControlBridge : IDisposable
     private bool releasing;
     private long transientOffReleaseAt;
 
-    public RotationControlBridge(IDalamudPluginInterface pluginInterface, IPluginLog log)
+    public RotationControlBridge(IDalamudPluginInterface pluginInterface, IPluginLog log,
+        string leaseInternalName = "WrathSwitch")
     {
         this.log = log;
+        this.leaseInternalName = leaseInternalName;
         callback = pluginInterface.GetIpcProvider<int, string, object>(
             $"{CallbackPrefix}.WrathComboCallback");
         callback.RegisterAction(OnLeaseCancelled);
@@ -190,7 +193,7 @@ internal sealed class RotationControlBridge : IDisposable
     private bool RegisterAndApply()
     {
         lease = registerLease.InvokeFunc(
-            "WrathSwitch", "VieriWrathSwitch - Main Rotation Control", CallbackPrefix);
+            leaseInternalName, "VieriWrathSwitch - Main Rotation Control", CallbackPrefix);
         if (lease is not { } activeLease)
             return false;
 

@@ -48,7 +48,7 @@ internal sealed class EmbeddedRotationProvider : IDisposable
             EntryAction = decision.EntryAction;
             Status = $"{anchor.Job}: {decision.Preset} — {decision.Detail}";
             return new(decision.ActionId, mode, SuggestionSource.EmbeddedVieri, true,
-                $"{decision.Preset}: {decision.Detail}");
+                $"{decision.Preset}: {decision.Detail}", decision.UsesEntryButton);
         }
         catch (Exception ex)
         {
@@ -83,7 +83,8 @@ internal sealed class EmbeddedRotationProvider : IDisposable
         return runtime.Forecast(anchor.JobId, mode == RotationMode.Aoe, null, lead, count)
             .Select(decision => new RotationSuggestion(decision.ActionId, mode,
                 SuggestionSource.EmbeddedVieri, true,
-                $"Predicted from {decision.Preset} after advancing the shadow combat timeline."))
+                $"Predicted from {decision.Preset} after advancing the shadow combat timeline.",
+                decision.UsesEntryButton))
             .ToArray();
     }
 }
