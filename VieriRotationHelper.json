@@ -1,0 +1,10 @@
+{
+  "Author": "Valentina Vieri",
+  "Name": "VieriRotationHelper",
+  "Punchline": "Wrath-parity rotation suggestions for every combat job.",
+  "Description": "Displays independent single-target and AoE rotation suggestion bars for every supported combat job. When Wrath Combo is loaded, the lead suggestions are read from Wrath's exact live action replacements. The embedded Vieri provider keeps suggestions available when Wrath is disabled. This plugin never executes actions.",
+  "IconUrl": "https://www.thedailypilcrow.com/dalamud/assets/VieriLogo.png",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Tags": [ "Rotation", "Wrath Combo", "Combat", "UI" ]
+}
