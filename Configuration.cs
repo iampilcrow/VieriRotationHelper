@@ -10,7 +10,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool Enabled = true;
     public bool ShowSingleTarget = true;
     public bool ShowAoe = true;
-    public bool ShowOutOfCombat;
+    public bool ShowOutOfCombat = true;
     public bool ShowWithoutTarget = true;
     public bool ShowActionNames = true;
     public bool ShowSourceBadge = true;
@@ -28,6 +28,15 @@ public sealed class Configuration : IPluginConfiguration
 
     private IDalamudPluginInterface? pluginInterface;
 
-    internal void Initialize(IDalamudPluginInterface value) => pluginInterface = value;
+    internal void Initialize(IDalamudPluginInterface value)
+    {
+        pluginInterface = value;
+        if (Version < 2)
+        {
+            ShowOutOfCombat = true;
+            Version = 2;
+            Save();
+        }
+    }
     internal void Save() => pluginInterface?.SavePluginConfig(this);
 }

@@ -19,6 +19,9 @@ standard combat job and never executes actions.
 - `/vrh` opens settings.
 - `/vrh toggle` enables or disables the suggestion bars.
 
+Both bars open automatically and are visible out of combat by default so they
+can be positioned immediately. Visibility can then be restricted in settings.
+
 ## Upstream maintenance
 
 Wrath provenance is pinned in `upstream/wrath.lock.json`. Run

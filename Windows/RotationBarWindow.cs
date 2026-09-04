@@ -25,6 +25,8 @@ internal sealed class RotationBarWindow : Window
         this.coordinator = coordinator;
         this.display = display;
         this.mode = mode;
+        IsOpen = true;
+        ShowCloseButton = false;
         RespectCloseHotkey = false;
     }
 
