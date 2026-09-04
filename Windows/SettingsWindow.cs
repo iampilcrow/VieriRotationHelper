@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
+using Dalamud.Game.ClientState.Keys;
 
 namespace VieriRotationHelper.Windows;
 
@@ -30,7 +31,33 @@ internal sealed class SettingsWindow : Window
         if (ImGui.BeginTabItem("Rotation Engine")) { DrawRotationEngine(); ImGui.EndTabItem(); }
         if (ImGui.BeginTabItem("Switch")) { DrawSwitch(); ImGui.EndTabItem(); }
         if (ImGui.BeginTabItem("Integrations")) { DrawIntegrations(); ImGui.EndTabItem(); }
+        if (ImGui.BeginTabItem("Keybinds")) { DrawKeybinds(); ImGui.EndTabItem(); }
         ImGui.EndTabBar();
+    }
+
+    private void DrawKeybinds()
+    {
+        var cfg = plugin.Configuration;
+        var hotkey = plugin.WindowHotkey;
+        ImGui.TextUnformatted("Suite window keybind");
+        ImGui.TextWrapped("Record a key combination to open or close this settings window while FFXIV is focused. This does not toggle rotation, suggestions, Manual Control, or In Combat Only.");
+        ImGui.TextUnformatted($"Current: {hotkey.Name}");
+        if (hotkey.IsCapturing)
+        {
+            if (ImGui.Button("Press a key combination... (Esc cancels)")) hotkey.CancelCapture();
+        }
+        else if (ImGui.Button("Record keybind")) hotkey.StartCapture();
+        ImGui.SameLine();
+        if (ImGui.Button("Clear")) hotkey.Clear();
+        var changed = ImGui.Checkbox("Enable keybind", ref cfg.WindowHotkeyEnabled);
+        changed |= ImGui.Checkbox("Require exact modifier combination", ref cfg.WindowHotkeyExactModifiers);
+        if (changed) plugin.Save();
+        ImGui.TextWrapped("Use an unused Ctrl, Shift, or Alt combination. Existing game and other plugin bindings are not replaced or blocked.");
+        if (cfg.WindowHotkey != VirtualKey.NO_KEY && !cfg.WindowHotkeyControl && !cfg.WindowHotkeyShift && !cfg.WindowHotkeyAlt)
+            ImGui.TextWrapped("Warning: an unmodified key can also trigger while typing in chat.");
+        ImGui.Separator();
+        ImGui.TextWrapped("Rotation ON/OFF (F1 by default) and the other switch shortcuts remain in Switch settings.");
+        if (ImGui.Button("Open Switch keybind settings")) plugin.OpenSwitchSettings();
     }
 
     private void DrawSuggestions()

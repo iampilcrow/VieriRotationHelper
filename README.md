@@ -40,6 +40,12 @@ appear on the bars. Open settings and hover an icon for names/diagnostics.
 - `/wrath` and `/wrathcombo` open and control the integrated rotation engine.
 - `/wrathswitch` and `/ws` control the integrated switch and safety modes.
 
+In **Keybinds**, record a keyboard shortcut to toggle the suite settings window,
+with Ctrl/Shift/Alt, exact-modifier matching, Enable, Clear, and Escape to cancel.
+No shortcut is assigned by default. This window shortcut does not change
+rotation or bar visibility; existing F1/switch shortcuts remain in Switch settings.
+Use an unused combination: other game/plugin bindings are not intercepted.
+
 All three suggestion bars open automatically in separate default positions and are visible
 out of combat by default so they can be positioned immediately. Each fixed bar
 and the dynamic bar can be toggled separately.

@@ -3,6 +3,7 @@ using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Newtonsoft.Json;
 using System.IO;
+using Dalamud.Game.ClientState.Keys;
 
 namespace VieriRotationHelper;
 
@@ -10,6 +11,12 @@ public sealed class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 1;
     public bool Enabled = true;
+    public bool WindowHotkeyEnabled = true;
+    public VirtualKey WindowHotkey = VirtualKey.NO_KEY;
+    public bool WindowHotkeyControl;
+    public bool WindowHotkeyShift;
+    public bool WindowHotkeyAlt;
+    public bool WindowHotkeyExactModifiers = true;
     public bool ShowSingleTarget = true;
     public bool ShowAoe = true;
     public bool ShowDynamic = true;

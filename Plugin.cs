@@ -32,6 +32,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WrathSwitch.Plugin? switchRuntime;
     internal OverlayFonts Fonts { get; }
     internal HotkeyResolver Hotkeys { get; }
+    internal WindowHotkeyController WindowHotkey { get; }
     internal bool SettingsOpen => settingsWindow.IsOpen;
     internal string EngineStatus => engine.Status;
 
@@ -39,6 +40,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(PluginInterface);
+        WindowHotkey = new WindowHotkeyController(this);
         Fonts = new OverlayFonts();
         Hotkeys = new HotkeyResolver(GameGui);
 
@@ -63,7 +65,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             HelpMessage = "Open VieriRotationHelper settings. Use '/vrh toggle' to show or hide suggestions.",
         });
-        PluginInterface.UiBuilder.Draw += windows.Draw;
+        PluginInterface.UiBuilder.Draw += Draw;
         PluginInterface.UiBuilder.OpenConfigUi += OpenSettings;
         PluginInterface.UiBuilder.OpenMainUi += OpenSettings;
 
@@ -73,7 +75,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        PluginInterface.UiBuilder.Draw -= windows.Draw;
+        PluginInterface.UiBuilder.Draw -= Draw;
+        WindowHotkey.CancelCapture();
         PluginInterface.UiBuilder.OpenConfigUi -= OpenSettings;
         PluginInterface.UiBuilder.OpenMainUi -= OpenSettings;
         CommandManager.RemoveHandler(Command);
@@ -102,6 +105,12 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     internal void Save() => Configuration.Save();
+    private void Draw()
+    {
+        WindowHotkey.Update();
+        windows.Draw();
+    }
+    internal void ToggleSettings() => settingsWindow.IsOpen = !settingsWindow.IsOpen;
     internal void OpenSettings() => settingsWindow.IsOpen = true;
     internal void OpenEngineSettings() => engine.OpenSettings();
     internal void OpenSwitchSettings()
