@@ -19,17 +19,25 @@
         "resolved": "10.0.5",
         "contentHash": "MYkGiMGWYc9rhyvsmf2UGIHD4RVJ3+uNgllFPP1YW6ILJJDXpDN8jMcy++0E/KrG507kTPCo5EOW4tEwUOCKhQ=="
       },
+      "WrathCombo.API": {
+        "type": "Transitive",
+        "resolved": "0.5.7",
+        "contentHash": "A7KURat4s3efIj+KO5LTy6Vky1Y0Hsnqt4XWBL6xYsLlYSxlqhBCS3Y/LrEkohDuGletwRjfkx8IiLTiVnEmxw=="
+      },
+      "VieriRotationHelper.Switch": {
+        "type": "Project",
+        "dependencies": {
+          "WrathCombo.API": "[0.5.7, )"
+        }
+      },
       "vieriwrathengine": {
         "type": "Project",
         "dependencies": {
           "System.Speech": "[10.0.5, )",
-          "VieriWrathEngine.API": "[1.0.0, )",
           "VieriWrathEngine.ECommons": "[3.2.0.19, )",
-          "VieriWrathEngine.PunishLib": "[1.0.0, )"
+          "VieriWrathEngine.PunishLib": "[1.0.0, )",
+          "WrathCombo.API": "[0.5.7, )"
         }
-      },
-      "VieriWrathEngine.API": {
-        "type": "Project"
       },
       "VieriWrathEngine.ECommons": {
         "type": "Project"

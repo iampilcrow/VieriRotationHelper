@@ -1,8 +1,9 @@
 # VieriRotationHelper
 
-VieriRotationHelper is a manual-execution rotation suggestion overlay for
-Final Fantasy XIV. It displays separate single-target, AoE, and live dynamic
-bars for every standard combat job and never executes actions.
+VieriRotationHelper is a unified combat suite for Final Fantasy XIV. It hosts
+the full pinned Wrath rotation engine and Auto-Rotation system, the complete
+VieriWrathSwitch overlay and safety controls, and separate single-target, AoE,
+and live dynamic suggestion bars for every standard combat job.
 
 The dynamic bar changes between single-target and AoE suggestions from the
 number of valid hostile targets within the active AoE's real radius. Action
@@ -12,29 +13,34 @@ symbols, weave symbols, charge counts, enemy counts, and range dimming.
 No spell names, mode banners, colored lead borders, or separate GCD strips
 appear on the bars. Open settings and hover an icon for names/diagnostics.
 
-## Provider model
+## Suite model
 
-- The next action is selected by the bundled, pinned Wrath PvE evaluators for
-  all 22 combat jobs (and their base classes), using actual gauges, statuses,
-  cooldowns, level restrictions, targets, and observed action history.
-- Disabling button consolidation or unloading Wrath does not disable this
-  evaluator. Wrath options are copied read-only; otherwise upstream simple
-  modes are selected. Blue Mage uses its active spellbook and configured DPS
-  options rather than pretending it knows unequipped spells.
-- When a live Wrath replacement is active at the evaluated entry point, its
-  output takes priority. Diagnostics compare that output with the independent
-  evaluator. A loaded plugin alone is not treated as proof of consolidation.
-- Smaller icons are conditional basic-combo continuations, not a full forward
-  simulation of future procs, buffs, cooldowns, or Wrath decisions. Unrelated
-  burst actions no longer generate fabricated combo sequences.
+- The execution engine and suggestion overlay use the same bundled, pinned
+  Wrath PvE rules for all combat jobs and base classes, including actual gauges,
+  statuses, cooldowns, level restrictions, targets, openers, and action history.
+- Action replacement, Auto-Rotation, targeting, retargeting, IPC leases, and
+  advanced job settings are provided directly by VieriRotationHelper. The
+  separate Wrath Combo plugin is not required.
+- Forecast icons use a thread-local shadow combat timeline. Game actions,
+  movement, targeting, retargeting, configuration writes, and item use are
+  suppressed while that forecast is calculated, without disabling those
+  features for the live rotation engine.
+- The embedded switch preserves Manual Movement / Targeting Only, In Combat
+  Only, authoritative ON/OFF control, keybinds, the movable overlay, and its
+  automation handoff behavior. The separate VieriWrathSwitch plugin is not
+  required.
+- Exact `WrathCombo.*` and `WrathSwitch.BeginAutomation` IPC names are retained
+  for VieriCodex, VieriAutoDuty, AutoDuty, BossMod, Avarice, and other clients.
 - Debug mode exposes live source and parity state in settings-open tooltips.
 
 ## Commands
 
 - `/vrh` opens settings.
 - `/vrh toggle` enables or disables the suggestion bars.
+- `/wrath` and `/wrathcombo` open and control the integrated rotation engine.
+- `/wrathswitch` and `/ws` control the integrated switch and safety modes.
 
-All three bars open automatically in separate default positions and are visible
+All three suggestion bars open automatically in separate default positions and are visible
 out of combat by default so they can be positioned immediately. Each fixed bar
 and the dynamic bar can be toggled separately.
 Keyboard hotkeys are read from the current character's hotbar labels and
@@ -50,6 +56,12 @@ Wrath provenance is pinned in `upstream/wrath.lock.json`. Run
 `scripts/Audit-WrathUpdate.ps1` with a newer Wrath checkout to produce the
 all-job compatibility report before integrating an update. See
 `docs/WRATH_INTEGRATION.md`.
+
+When upgrading from the separate plugins, VieriRotationHelper imports the last
+Wrath options and VieriWrathSwitch settings into its own configuration. The
+original configuration files are left untouched. Disable the separate Wrath
+Combo and VieriWrathSwitch plugins, then reload once so only the suite owns the
+action hook and compatibility IPC providers.
 
 The authorized Hilda display reference is pinned separately in
 `upstream/hilda.lock.json`; see `docs/HILDA_REFERENCE.md`.

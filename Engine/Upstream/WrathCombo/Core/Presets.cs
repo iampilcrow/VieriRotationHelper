@@ -1,4 +1,4 @@
-﻿using ECommons;
+using ECommons;
 using ECommons.Logging;
 using System;
 using System.Collections.Frozen;
@@ -116,16 +116,16 @@ internal static class PresetStorage
                 if (AutoAction.IsHeal)
                 {
                     if (AutoAction.IsAoE)
-                        TargetType = ComboTargetTypeKeys.AoEHeals;
+                        TargetType = ComboTargetTypeKeys.HealMT;
                     else
-                        TargetType = ComboTargetTypeKeys.SingleTargetHeals;
+                        TargetType = ComboTargetTypeKeys.HealST;
                 }
                 else
                 {
                     if (AutoAction.IsAoE)
-                        TargetType = ComboTargetTypeKeys.AoEDPS;
+                        TargetType = ComboTargetTypeKeys.MultiTarget;
                     else
-                        TargetType = ComboTargetTypeKeys.SingleTargetDPS;
+                        TargetType = ComboTargetTypeKeys.SingleTarget;
                 }
             }
             else

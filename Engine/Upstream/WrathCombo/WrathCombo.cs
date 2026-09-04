@@ -178,8 +178,6 @@ public sealed partial class WrathCombo : IDalamudPlugin
     /// <param name="pluginInterface"> Dalamud plugin interface. </param>
     public WrathCombo(IDalamudPluginInterface pluginInterface)
     {
-        if (ReadOnlyRuntime.Active)
-            throw new InvalidOperationException("This assembly is a read-only decision library, not a Wrath plugin.");
         P = this;
         pluginInterface.Create<Service>();
         ECommonsMain.Init(pluginInterface, this, Module.All);
@@ -187,8 +185,11 @@ public sealed partial class WrathCombo : IDalamudPlugin
         ActionRequestIPCProvider.Initialize();
 
         TM = new();
-        RemoveNullAutos();
-        Service.Configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        if (!ReadOnlyRuntime.Hosted)
+            RemoveNullAutos();
+        Service.Configuration = ReadOnlyRuntime.TakeHostedConfiguration()
+            ?? pluginInterface.GetPluginConfig() as Configuration
+            ?? new Configuration();
         Service.Address = new AddressResolver();
         Service.Address.Setup(Svc.SigScanner);
         MoveHook = new();
@@ -508,7 +509,7 @@ public sealed partial class WrathCombo : IDalamudPlugin
         Svc.Framework.Update -= OnFrameworkUpdate;
         Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenConfigUi;
-        Svc.PluginInterface.UiBuilder.Draw -= DrawUI;
+        Svc.PluginInterface.UiBuilder.Draw -= ws.Draw;
 
         Service.ActionReplacer.Dispose();
         Service.ComboCache.Dispose();

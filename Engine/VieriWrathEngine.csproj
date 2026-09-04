@@ -14,12 +14,13 @@
     <NoWarn>$(NoWarn);CS1591;CS8618;CS0649;CS0169;CS0414;CS0618;CS8602;CS8604;CS8625;CS0219</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="*.cs;Upstream/WrathCombo/**/*.cs" Exclude="Upstream/WrathCombo/obj/**/*;Upstream/WrathCombo/bin/**/*;Upstream/WrathCombo/Core/ActionReplacer.cs" />
+    <Compile Include="*.cs;Upstream/WrathCombo/**/*.cs" Exclude="Upstream/WrathCombo/obj/**/*;Upstream/WrathCombo/bin/**/*;ReadOnlyActionReplacer.cs;DisabledIpcContracts.cs" />
     <EmbeddedResource Include="Upstream/WrathCombo/**/*.resx">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
     <ProjectReference Include="Upstream/ECommons/ECommons.csproj" />
     <ProjectReference Include="Dependencies/Punish.csproj" />
+    <PackageReference Include="WrathCombo.API" Version="0.5.7" />
     <PackageReference Include="System.Speech" Version="10.0.5" />
   </ItemGroup>
 </Project>

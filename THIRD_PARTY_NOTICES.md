@@ -51,6 +51,9 @@ licenses are included under `Engine/Upstream/ECommons/LICENSE.md` and
 runtime package's `licenses` directory. Exact revisions are recorded in
 `upstream/engine.lock.json`. Assembly names are isolated to this plugin.
 
-WrathCombo.API is not a dependency of this build. The unused upstream IPC/UI
-code compiles against local compatibility names; no API client, provider, or
-lease is initialized. This plugin never enables or disables live Wrath options.
+WrathCombo.API 0.5.7 is redistributed as the compatibility contract used by
+the embedded provider and automation clients. The package is licensed
+AGPL-3.0-only and its source is available from
+https://github.com/PunishXIV/WrathCombo.API. VieriRotationHelper registers the
+same public IPC names so existing clients do not need a private Vieri-specific
+integration.

@@ -31,22 +31,21 @@ foreach ($job in $jobs) {
         }
     }
 }
-Assert-Contract ($runtime -match 'Active => true' -and $runtime -notmatch 'Active\s*\{[^}]*set') 'Read-only is an immutable assembly invariant'
+Assert-Contract ($runtime -match 'Active => PredictionContext\.Current != null') 'Prediction safety must be scoped to the forecast thread'
 Assert-Contract ($runtime -match 'combo.Suggest\(entry\)' -and $runtime -notmatch '\.TryInvoke\(') 'Selection must not be gated by Wrath enabled state or IPC action requests'
-Assert-Contract ($runtime -notmatch 'new AutoRotationController|Provider.Init|new MovementHook|Module.All|RegisterCommands') 'No upstream automation may be started'
+Assert-Contract ($runtime -match 'new WrathCombo\(pluginInterface\)' -and $runtime -match 'Service\.ActionReplacer\.OriginalHook') 'Suite must host the full engine and retain the native resolver for suggestions'
 Assert-Contract ($runtime -match 'PredictionContext\.Begin\(\)' -and $runtime -match 'timeline\.Advance\(prior\)') 'Forecast must advance an isolated timeline before every future Wrath decision'
 Assert-Contract ($provider -match 'runtime\.Forecast' -and $provider -notmatch 'SingleTargetCombo|AoeCombo|Array\.IndexOf') 'Preview cannot fall back to a hard-coded basic combo list'
 Assert-Contract ($prediction -match 'ComboAction' -and $prediction -match 'CooldownRemaining' -and $prediction -match 'RemainingGcd' -and $prediction -match 'Weaves') 'Prediction timeline must project combo, cooldown and weave state'
 Assert-Contract ($prediction -notmatch 'UseAction\(|SetTarget|QueuedActionId\s*=') 'Prediction timeline cannot issue actions, retarget, or alter queues'
-Assert-Contract ($runtime.IndexOf('P = this;') -lt $runtime.IndexOf('UIHelper = new UIHelper')) 'Private singleton must exist before UIHelper initialization'
-$facade = Get-Content (Join-Path $root 'Engine/ReadOnlyActionReplacer.cs') -Raw
-Assert-Contract ($facade -notmatch 'HookFrom|UseAction\(') 'Decision adapter may neither hook hotbars nor execute actions'
-$watcher = Get-Content (Join-Path $source 'Data/ActionWatching.cs') -Raw
-$observer = $watcher.Substring($watcher.IndexOf('private static unsafe void ObserveSentAction('))
-$observer = $observer.Substring(0, $observer.IndexOf('private unsafe static void SendActionDetour('))
-Assert-Contract (([regex]::Matches($observer, 'SendActionHook!\.Original\(')).Count -eq 1) 'Outgoing observer must forward exactly once'
-Assert-Contract ($observer.IndexOf('SendActionHook!.Original(') -lt $observer.IndexOf('try')) 'Original send must occur before fallible managed observation'
-Assert-Contract ($observer -notmatch 'UseAction\(|SetTarget|\.Target\s*=|\.QueuedActionId\s*=') 'Observer cannot issue actions, retarget, or alter queues'
+$project = Get-Content (Join-Path $root 'Engine/VieriWrathEngine.csproj') -Raw
+$wrathPlugin = Get-Content (Join-Path $source 'WrathCombo.cs') -Raw
+$ipcProvider = Get-Content (Join-Path $source 'Services/IPC/Provider.cs') -Raw
+Assert-Contract ($project -notmatch 'Upstream/WrathCombo/Core/ActionReplacer.cs' -and $project -match 'WrathCombo.API') 'Full action replacement and the public IPC contract must be compiled'
+Assert-Contract ($wrathPlugin -match 'Service\.AutoRotationController\s*=\s*new AutoRotationController' -and $wrathPlugin -match 'IPC\s*=\s*Provider\.Init\(\)') 'Full Auto-Rotation and IPC provider must initialize'
+Assert-Contract ($ipcProvider -match '\[EzIPC\]' -and $ipcProvider -match 'IsCurrentJobAutoRotationReady') 'Wrath compatibility provider must expose automation readiness'
+$switchPlugin = Get-Content (Join-Path $root 'SwitchRuntime/Plugin.cs') -Raw
+Assert-Contract ($switchPlugin -match 'WrathSwitch\.BeginAutomation' -and $switchPlugin -match 'MainCommand = "/wrathswitch"') 'Embedded switch must retain its legacy IPC and command contracts'
 $safety = @{
     'Core/ConfigurationHelper.cs' = 'if \(ReadOnlyRuntime.Active\)\s*return;'
     'Combos/PvE/ALL/Items.cs' = 'if \(ReadOnlyRuntime.Active\) return;'
@@ -56,6 +55,6 @@ $safety = @{
     'CustomCombo/StancePartner.cs' = 'if \(ReadOnlyRuntime.Active\) return;'
 }
 foreach ($file in $safety.Keys) {
-    Assert-Contract ((Get-Content (Join-Path $source $file) -Raw) -match $safety[$file]) "Read-only guard missing from $file"
+    Assert-Contract ((Get-Content (Join-Path $source $file) -Raw) -match $safety[$file]) "Prediction guard missing from $file"
 }
-Write-Host "Wrath engine source/safety contracts passed: $checks checks across all 22 jobs. Live game parity is a separate test."
+Write-Host "Unified Wrath engine/source safety contracts passed: $checks checks across all 22 jobs. Live game parity is a separate test."

@@ -1,8 +1,8 @@
 {
   "Author": "Valentina Vieri",
   "Name": "VieriRotationHelper",
-  "Punchline": "Independent Wrath-powered PvE rotation suggestions.",
-  "Description": "Single-target, AoE, and dynamic bars using bundled Wrath PvE job evaluators even when consolidation is disabled or Wrath is unloaded. Hilda-style side-by-side icons, actual working hotkeys, positional symbols, cooldowns, and stateful multi-action prediction. Wrath options are copied read-only. This plugin never executes actions.",
+  "Punchline": "Rotation engine, Auto-Rotation switch, and Hilda-style suggestions in one suite.",
+  "Description": "A unified combat suite containing the full Wrath rotation engine, Auto-Rotation and automation IPC, the VieriWrathSwitch overlay and safety controls, plus Hilda-style single-target, AoE, and dynamic suggestion bars for every combat job.",
   "IconUrl": "https://www.thedailypilcrow.com/dalamud/assets/VieriLogo.png",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,

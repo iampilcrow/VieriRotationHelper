@@ -31,6 +31,7 @@ namespace WrathCombo;
 public partial class WrathCombo
 {
     private const string Command = "/wrath";
+    private const string SuiteAlias = "/wrathcombo";
     private const string OldCommand = "/scombo";
 
     private static readonly Dictionary<Job, Preset[]> BurstPresetMap = new()
@@ -132,6 +133,7 @@ public partial class WrathCombo
             $"{Command} debug → Dumps a debug log onto your desktop for developers.\n" +
             $"{OldCommand} → Old alias from XIVSlothCombo, still works!");
         EzCmd.Add(OldCommand, OnCommand);
+        EzCmd.Add(SuiteAlias, OnCommand);
     }
 
     /// <summary>

@@ -9,15 +9,27 @@ internal sealed class EmbeddedRotationProvider : IDisposable
     private readonly Configuration configuration;
     internal uint EntryAction { get; private set; }
     internal string Status { get; private set; } = "Waiting for a character.";
+    internal bool IsActive => runtime != null;
     private long nextErrorLog;
 
     internal EmbeddedRotationProvider(Plugin owner, WrathLiveProvider wrath)
     {
         this.wrath = wrath;
         configuration = owner.Configuration;
+        if (wrath.IsLoaded)
+        {
+            Status = "The separate Wrath Combo plugin is loaded. Disable it and reload VieriRotationHelper to activate the integrated engine without duplicate hooks.";
+            return;
+        }
         try
         {
-            runtime = new WrathCombo.ReadOnlyRuntime(Plugin.PluginInterface, owner, wrath.GetNativeAdjusted);
+            var imported = wrath.GetOptions(configuration);
+            runtime = new WrathCombo.ReadOnlyRuntime(Plugin.PluginInterface, owner,
+                wrath.GetNativeAdjusted, imported, json =>
+                {
+                    configuration.WrathOptionsSnapshot = json;
+                    owner.Save();
+                });
         }
         catch (Exception ex)
         {
@@ -32,7 +44,7 @@ internal sealed class EmbeddedRotationProvider : IDisposable
         {
             if (runtime == null)
                 return new(0, mode, SuggestionSource.EmbeddedVieri, false, Status);
-            var decision = runtime.Evaluate(anchor.JobId, mode == RotationMode.Aoe, wrath.GetOptions(configuration));
+            var decision = runtime.Evaluate(anchor.JobId, mode == RotationMode.Aoe, null);
             EntryAction = decision.EntryAction;
             Status = $"{anchor.Job}: {decision.Preset} — {decision.Detail}";
             return new(decision.ActionId, mode, SuggestionSource.EmbeddedVieri, true,
@@ -54,6 +66,12 @@ internal sealed class EmbeddedRotationProvider : IDisposable
 
     public void Dispose() => runtime?.Dispose();
 
+    internal void OpenSettings()
+    {
+        if (runtime != null)
+            runtime.OpenEngineSettings();
+    }
+
     internal IReadOnlyList<RotationSuggestion> Forecast(
         RotationAnchor anchor,
         RotationMode mode,
@@ -62,7 +80,7 @@ internal sealed class EmbeddedRotationProvider : IDisposable
     {
         if (count <= 1 || runtime == null)
             return [];
-        return runtime.Forecast(anchor.JobId, mode == RotationMode.Aoe, wrath.GetOptions(configuration), lead, count)
+        return runtime.Forecast(anchor.JobId, mode == RotationMode.Aoe, null, lead, count)
             .Select(decision => new RotationSuggestion(decision.ActionId, mode,
                 SuggestionSource.EmbeddedVieri, true,
                 $"Predicted from {decision.Preset} after advancing the shadow combat timeline."))

@@ -1,6 +1,8 @@
 using System.Numerics;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace VieriRotationHelper;
 
@@ -24,6 +26,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool DebugMode;
     // A private copy, never written back to Wrath's configuration.
     public string? WrathOptionsSnapshot;
+    public WrathSwitch.Configuration Switch = new();
     public int PredictionCount = 3;
     public int DynamicAoeTargetCount = 3;
     public float IconSize = 65f;
@@ -64,6 +67,21 @@ public sealed class Configuration : IPluginConfiguration
             IconSpacing = 3f;
             PredictionCount = 3;
             Version = 4;
+            Save();
+        }
+        if (Version < 5)
+        {
+            try
+            {
+                var legacyPath = Path.GetFullPath(Path.Combine(value.GetPluginConfigDirectory(), "..", "WrathSwitch.json"));
+                if (File.Exists(legacyPath))
+                    Switch = JsonConvert.DeserializeObject<WrathSwitch.Configuration>(File.ReadAllText(legacyPath)) ?? Switch;
+            }
+            catch
+            {
+                // A missing or malformed legacy file must never prevent the suite from loading.
+            }
+            Version = 5;
             Save();
         }
     }

@@ -252,12 +252,12 @@ public partial class Helper(ref Leasing leasing)
         List<string> combos = [];
 
         // Add combos for each target type category
-        AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.SingleTargetDPS, includeOptions);
-        AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.AoEDPS, includeOptions);
+        AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.SingleTarget, includeOptions);
+        AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.MultiTarget, includeOptions);
         if (job.IsHealer() || job is Job.BLU)
         {
-            AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.SingleTargetHeals, includeOptions);
-            AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.AoEHeals, includeOptions);
+            AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.HealST, includeOptions);
+            AddComboForTargetType(combos, comboStates, job, ComboTargetTypeKeys.HealMT, includeOptions);
         }
 
         if (includeOptions)

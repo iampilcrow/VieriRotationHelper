@@ -3,6 +3,7 @@ using Dalamud.IoC;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Game.ClientState.Keys;
 using VieriRotationHelper.Windows;
 
 namespace VieriRotationHelper;
@@ -22,11 +23,13 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IKeyState KeyState { get; private set; } = null!;
 
     internal Configuration Configuration { get; }
     private readonly WindowSystem windows = new("VieriRotationHelper");
     private readonly SettingsWindow settingsWindow;
     private readonly EmbeddedRotationProvider engine;
+    private readonly WrathSwitch.Plugin? switchRuntime;
     internal OverlayFonts Fonts { get; }
     internal HotkeyResolver Hotkeys { get; }
     internal bool SettingsOpen => settingsWindow.IsOpen;
@@ -41,6 +44,11 @@ public sealed class Plugin : IDalamudPlugin
 
         var wrath = new WrathLiveProvider(PluginInterface);
         engine = new EmbeddedRotationProvider(this, wrath);
+        var separateSwitchLoaded = PluginInterface.InstalledPlugins.Any(plugin =>
+            plugin.InternalName.Equals("WrathSwitch", StringComparison.OrdinalIgnoreCase) && plugin.IsLoaded);
+        if (!separateSwitchLoaded)
+            switchRuntime = new WrathSwitch.Plugin(PluginInterface, CommandManager, ClientState,
+                KeyState, GameGui, ChatGui, Log, Configuration.Switch, Save, true);
         var coordinator = new RotationCoordinator(ObjectTable, wrath, engine,
             new TargetAnalysis(ObjectTable, TargetManager, DataManager), Configuration);
         var display = new ActionDisplay(DataManager);
@@ -58,6 +66,9 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw += windows.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += OpenSettings;
         PluginInterface.UiBuilder.OpenMainUi += OpenSettings;
+
+        if (wrath.IsLoaded || separateSwitchLoaded)
+            ChatGui.PrintError("[VieriRotationHelper] Disable the separate Wrath Combo and VieriWrathSwitch plugins, then reload plugins once to activate the complete integrated suite. Your old settings files are preserved.");
     }
 
     public void Dispose()
@@ -67,6 +78,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= OpenSettings;
         CommandManager.RemoveHandler(Command);
         windows.RemoveAllWindows();
+        switchRuntime?.Dispose();
         engine.Dispose();
         Fonts.Dispose();
         Configuration.Save();
@@ -91,6 +103,16 @@ public sealed class Plugin : IDalamudPlugin
 
     internal void Save() => Configuration.Save();
     internal void OpenSettings() => settingsWindow.IsOpen = true;
+    internal void OpenEngineSettings() => engine.OpenSettings();
+    internal void OpenSwitchSettings()
+    {
+        if (switchRuntime != null)
+            switchRuntime.OpenSettings();
+        else
+            CommandManager.ProcessCommand("/wrathswitch");
+    }
+    internal bool EmbeddedEngineActive => engine.IsActive;
+    internal bool EmbeddedSwitchActive => switchRuntime != null;
 
     private void OnCommand(string command, string arguments)
     {
