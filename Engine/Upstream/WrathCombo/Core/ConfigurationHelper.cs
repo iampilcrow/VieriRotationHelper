@@ -14,6 +14,7 @@ public partial class Configuration
 {
     internal void SetActionChanging(bool? newValue = null)
     {
+        var changed = newValue is not null && newValue != ActionChanging;
         if (newValue is not null && newValue != ActionChanging)
         {
             ActionChanging = newValue.Value;
@@ -21,10 +22,8 @@ public partial class Configuration
         }
 
         // Checks if action replacing is not in line with the setting
-        if (ActionChanging && !Service.ActionReplacer.getActionHook.IsEnabled)
-            Service.ActionReplacer.getActionHook.Enable();
-        if (!ActionChanging && Service.ActionReplacer.getActionHook.IsEnabled)
-            Service.ActionReplacer.getActionHook.Disable();
+        if (changed || ActionChanging != Service.ActionReplacer.ActionReplacingEnabled)
+            Service.ActionReplacer.SetActionReplacing(ActionChanging);
     }
 
     #region Saving

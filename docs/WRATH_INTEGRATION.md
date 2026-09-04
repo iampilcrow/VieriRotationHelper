@@ -38,6 +38,27 @@ special pomander buttons are not represented as ordinary spell suggestions.
 
 ## Source pin
 
+### Hosted hotbar lifecycle adaptation
+
+Preserve `ActionReplacer.SetActionReplacing` and its deferred framework refresh
+when updating upstream. The game caches whether an assigned hotbar action is
+replaceable; enabling the hooks after login alone does not refresh that cache.
+The refresh reassigns each existing ordinary action through native `HotbarSlot.Set`
+with its unchanged command type and ID. It does not save HOTBAR.DAT, rearrange
+buttons, or touch macros/items. Both replacement hooks toggle together. The
+refresh waits for login and a ready screen, stays outside prediction, and also
+restores native classification after disabling hooks during disposal. Temporary
+action-queue suppression must not schedule repeated hotbar refreshes.
+
+The 2.0.0.2 live diagnostic found the engine resolving Spinning Edge (2240) to
+Ten (2259), while the real slot retained apparent action 2240, icon 601, and
+the ordinary-action display classification. Native setter inspection confirmed
+it recomputes that classification through the replacement hook even when the
+command ID is unchanged. Release build/integration checks cover compilation and
+existing contracts; post-update native hotbar behavior still requires live testing:
+reload with existing buttons, test ST/AoE Simple Mode, toggle action replacement,
+and unload/reload while confirming layouts and non-action slots remain intact.
+
 `upstream/wrath.lock.json` records the exact upstream repository, version, and
 commit used by the embedded rules. Do not change the pin without auditing and
 testing every affected job.

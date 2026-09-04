@@ -63,11 +63,11 @@ original configuration files are left untouched. Disable the separate Wrath
 Combo and VieriWrathSwitch plugins, then reload once so only the suite owns the
 action hook and compatibility IPC providers.
 
-Version 2.0.0.2 keeps the integrated switch's Wrath control leases owned by the
-suite instead of the disabled standalone switch, and restores consolidated
-hotkey labels across every predicted Simple Mode action. The native action hook
-and the suggestion bars now remain under the same enabled preset and switch
-state after the standalone plugins are disabled.
+Version 2.0.0.3 refreshes existing hotbar action display classifications when
+the integrated engine loads or action replacement changes. This addresses
+buttons retaining their original icon (such as Spinning Edge) even while the
+engine resolves a replacement. Actions and hotbar layouts are preserved.
+The 2.0.0.2 switch lease ownership and consolidated forecast hotkey fixes remain.
 
 The authorized Hilda display reference is pinned separately in
 `upstream/hilda.lock.json`; see `docs/HILDA_REFERENCE.md`.

@@ -2,6 +2,7 @@
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
+using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -9,6 +10,8 @@ using ECommons.GameHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +38,7 @@ internal sealed class ActionReplacer : IDisposable
     public readonly Hook<GetActionDelegate> getActionHook;
     public bool ActionReplacingEnabled => getActionHook.IsEnabled;
     private readonly Hook<IsActionReplaceableDelegate> isActionReplaceableHook;
+    private bool hotbarRefreshPending;
 
     public readonly Dictionary<uint, uint> LastActionInvokeFor = [];
 
@@ -59,19 +63,61 @@ internal sealed class ActionReplacer : IDisposable
         getActionHook = Svc.Hook.HookFromAddress<GetActionDelegate>((nint)ActionManager.Addresses.GetAdjustedActionId.Value, GetAdjustedActionDetour);
         isActionReplaceableHook = Svc.Hook.HookFromAddress<IsActionReplaceableDelegate>(Service.Address.IsActionIdReplaceable, IsActionReplaceableDetour);
 
-        if (Service.Configuration.ActionChanging)
-        {
-            getActionHook.Enable();
-            isActionReplaceableHook.Enable();
-        }
+        SetActionReplacing(Service.Configuration.ActionChanging);
+        Svc.Framework.Update += RefreshHotbarsAfterLoad;
     }
 
     public void Dispose()
     {
+        Svc.Framework.Update -= RefreshHotbarsAfterLoad;
         getActionHook.Disable();
-        getActionHook.Dispose();
         isActionReplaceableHook.Disable();
+        // Reclassify existing slots with native behavior when the suite unloads.
+        RefreshActionSlots();
+        getActionHook.Dispose();
         isActionReplaceableHook.Dispose();
+    }
+
+    internal void SetActionReplacing(bool enabled)
+    {
+        if (enabled)
+        {
+            getActionHook.Enable();
+            isActionReplaceableHook.Enable();
+        }
+        else
+        {
+            getActionHook.Disable();
+            isActionReplaceableHook.Disable();
+        }
+        hotbarRefreshPending = true;
+    }
+
+    private void RefreshHotbarsAfterLoad(IFramework framework)
+    {
+        if (hotbarRefreshPending && !ReadOnlyRuntime.Active && RefreshActionSlots())
+            hotbarRefreshPending = false;
+    }
+
+    private static unsafe bool RefreshActionSlots()
+    {
+        if (!Svc.ClientState.IsLoggedIn || !GenericHelpers.IsScreenReady())
+            return false;
+        var ui = UIModule.Instance();
+        var hotbars = ui == null ? null : ui->GetRaptureHotbarModule();
+        if (hotbars == null)
+            return false;
+
+        // The game caches whether a slot supports action replacement when it is
+        // assigned. Hooks installed after login do not reclassify existing slots.
+        // Reapply the identical command through the native setter; this refreshes
+        // presentation without changing bindings or saving HOTBAR.DAT.
+        foreach (ref var hotbar in hotbars->Hotbars)
+            foreach (ref var slot in hotbar.Slots)
+                if (slot.CommandType == RaptureHotbarModule.HotbarSlotType.Action && slot.CommandId != 0)
+                    slot.Set(ui, slot.CommandType, slot.CommandId);
+        Svc.Log.Information("Refreshed existing hotbar action display state after action replacement changed.");
+        return true;
     }
 
     private ulong IsActionReplaceableDetour(uint actionID)
