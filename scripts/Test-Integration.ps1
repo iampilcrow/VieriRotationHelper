@@ -15,6 +15,10 @@ $lock = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\upstream\wrath.loc
 if ($lock.commit -notmatch '^[0-9a-f]{40}$') {
     throw "Wrath source pin is not a full commit hash."
 }
+$hildaLock = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\upstream\hilda.lock.json") -Raw | ConvertFrom-Json
+if ($hildaLock.version -notmatch '^\d+\.\d+\.\d+\.\d+$' -or $hildaLock.files.'HildaJobs.dll' -notmatch '^[0-9A-F]{64}$') {
+    throw "Hilda behavioral reference is not pinned to a version and SHA-256 hash."
+}
 
 Write-Host "Integration checks passed: $mappingCount combat jobs, ST/AoE surfaces present, Wrath source pinned."
 
@@ -29,3 +33,15 @@ if ($configuration -notmatch 'ShowOutOfCombat\s*=\s*true') {
 }
 
 Write-Host "Visibility checks passed: bars initialize open and are placeable out of combat."
+
+$plugin = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\Plugin.cs") -Raw
+$coordinator = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\RotationCoordinator.cs") -Raw
+$positionals = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\PositionalCatalog.cs") -Raw
+if ($plugin -notmatch 'RotationMode\.Dynamic' -or $coordinator -notmatch 'DynamicAoeTargetCount') {
+    throw "Dynamic bar and live ST/AoE target-count routing must remain wired."
+}
+if ($positionals -notmatch 'PositionalKind\.Flank' -or $positionals -notmatch 'PositionalKind\.Rear') {
+    throw "Authorized Hilda-derived flank/rear metadata must remain present."
+}
+
+Write-Host "Hilda-display checks passed: dynamic bar, target routing, and flank/rear metadata are present."

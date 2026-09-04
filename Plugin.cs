@@ -32,11 +32,13 @@ public sealed class Plugin : IDalamudPlugin
         Configuration.Initialize(PluginInterface);
 
         var wrath = new WrathLiveProvider(PluginInterface);
-        var coordinator = new RotationCoordinator(ObjectTable, wrath, new EmbeddedRotationProvider(), Configuration);
+        var coordinator = new RotationCoordinator(ObjectTable, wrath, new EmbeddedRotationProvider(),
+            new TargetAnalysis(ObjectTable, TargetManager, DataManager), Configuration);
         var display = new ActionDisplay(DataManager);
 
         windows.AddWindow(new RotationBarWindow(this, coordinator, display, RotationMode.SingleTarget));
         windows.AddWindow(new RotationBarWindow(this, coordinator, display, RotationMode.Aoe));
+        windows.AddWindow(new RotationBarWindow(this, coordinator, display, RotationMode.Dynamic));
         settingsWindow = new SettingsWindow(this, wrath);
         windows.AddWindow(settingsWindow);
 
@@ -66,6 +68,8 @@ public sealed class Plugin : IDalamudPlugin
         if (mode == RotationMode.SingleTarget && !Configuration.ShowSingleTarget)
             return false;
         if (mode == RotationMode.Aoe && !Configuration.ShowAoe)
+            return false;
+        if (mode == RotationMode.Dynamic && !Configuration.ShowDynamic)
             return false;
         if (!Configuration.ShowOutOfCombat && !Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
             return false;

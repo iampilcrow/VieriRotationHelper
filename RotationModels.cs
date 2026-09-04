@@ -4,6 +4,14 @@ internal enum RotationMode
 {
     SingleTarget,
     Aoe,
+    Dynamic,
+}
+
+internal enum PositionalKind
+{
+    None,
+    Flank,
+    Rear,
 }
 
 internal enum SuggestionSource
@@ -34,4 +42,11 @@ internal sealed record RotationFrame(
     IReadOnlyList<RotationSuggestion> Forecast,
     bool WrathLoaded,
     bool ParityVerified,
+    RotationMode EffectiveMode,
+    int EnemyCount,
+    int ActionEnemyCount,
     string Status);
+
+internal readonly record struct TargetSnapshot(int EnemyCount, float? RangeToTarget);
+
+internal readonly record struct ActionInfo(string Name, uint Icon, int Range, int Radius);

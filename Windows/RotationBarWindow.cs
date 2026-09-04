@@ -18,7 +18,7 @@ internal sealed class RotationBarWindow : Window
         RotationCoordinator coordinator,
         ActionDisplay display,
         RotationMode mode)
-        : base($"Vieri Rotation · {(mode == RotationMode.SingleTarget ? "Single Target" : "AoE")}###VieriRotation{mode}",
+        : base($"Vieri Rotation · {ModeName(mode)}###VieriRotation{mode}",
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize)
     {
         this.plugin = plugin;
@@ -28,6 +28,13 @@ internal sealed class RotationBarWindow : Window
         IsOpen = true;
         ShowCloseButton = false;
         RespectCloseHotkey = false;
+        Position = mode switch
+        {
+            RotationMode.SingleTarget => new Vector2(420, 260),
+            RotationMode.Aoe => new Vector2(420, 390),
+            _ => new Vector2(420, 520),
+        };
+        PositionCondition = ImGuiCond.FirstUseEver;
     }
 
     public override bool DrawConditions() => plugin.ShouldShow(mode);
@@ -62,22 +69,42 @@ internal sealed class RotationBarWindow : Window
             var color = frame.WrathLoaded ? new Vector4(0.48f, 0.95f, 0.62f, 1f) : new Vector4(0.75f, 0.68f, 1f, 1f);
             ImGui.TextColored(color, frame.Status);
         }
+        if (mode == RotationMode.Dynamic)
+        {
+            if (plugin.Configuration.ShowSourceBadge)
+                ImGui.SameLine();
+            var dynamicColor = frame.EffectiveMode == RotationMode.Aoe
+                ? new Vector4(1f, .58f, .30f, 1f)
+                : new Vector4(.35f, .78f, 1f, 1f);
+            ImGui.TextColored(dynamicColor,
+                $"{(plugin.Configuration.ShowSourceBadge ? "· " : string.Empty)}{ModeName(frame.EffectiveMode).ToUpperInvariant()} ({frame.EnemyCount} nearby)");
+        }
 
-        DrawAction(frame.Lead, plugin.Configuration.IconSize, true);
+        DrawAction(frame.Lead, plugin.Configuration.IconSize, true, frame.ActionEnemyCount);
         foreach (var future in frame.Forecast)
         {
             if (plugin.Configuration.Horizontal)
                 ImGui.SameLine();
-            DrawAction(future, plugin.Configuration.IconSize * plugin.Configuration.FutureIconScale, false);
+            DrawAction(future, plugin.Configuration.IconSize * plugin.Configuration.FutureIconScale, false, frame.ActionEnemyCount);
         }
+
+        DrawGcdIndicator(frame.Anchor);
 
         if (plugin.Configuration.DebugMode)
         {
             ImGui.Separator();
-            ImGui.TextUnformatted($"Job: {frame.Anchor?.Job} · Anchor: {(mode == RotationMode.SingleTarget ? frame.Anchor?.SingleTargetAction : frame.Anchor?.AoeAction)}");
+            ImGui.TextUnformatted($"Job: {frame.Anchor?.Job} · Mode: {ModeName(frame.EffectiveMode)} · Enemies: {frame.EnemyCount}");
             ImGui.TextWrapped(frame.Lead.Reason);
         }
     }
+
+    private static string ModeName(RotationMode value) => value switch
+    {
+        RotationMode.SingleTarget => "Single Target",
+        RotationMode.Aoe => "AoE",
+        RotationMode.Dynamic => "Dynamic",
+        _ => value.ToString(),
+    };
 
     private static void DrawPlaceholder(float size)
     {
@@ -87,7 +114,7 @@ internal sealed class RotationBarWindow : Window
         ImGui.GetWindowDrawList().AddRect(min, max, 0xFF707070);
     }
 
-    private void DrawAction(RotationSuggestion suggestion, float size, bool lead)
+    private void DrawAction(RotationSuggestion suggestion, float size, bool lead, int enemyCount)
     {
         var info = display.Get(suggestion.ActionId);
         if (info.Icon == 0)
@@ -99,6 +126,10 @@ internal sealed class RotationBarWindow : Window
             var texture = Plugin.TextureProvider.GetFromGameIcon(new GameIconLookup(info.Icon)).GetWrapOrEmpty();
             ImGui.Image(texture.Handle, new Vector2(size, size));
             DrawCooldown(suggestion.ActionId);
+            DrawRangeFade(info);
+            DrawPositional(suggestion.ActionId, size);
+            if (lead)
+                DrawEnemyCount(enemyCount, size);
             if (lead)
             {
                 var min = ImGui.GetItemRectMin();
@@ -115,6 +146,74 @@ internal sealed class RotationBarWindow : Window
             var name = info.Name.Length > 16 ? info.Name[..15] + "…" : info.Name;
             ImGui.TextUnformatted(name);
         }
+    }
+
+    private static void DrawBadge(string text, Vector2 min, Vector2 max, uint background, uint foreground)
+    {
+        var draw = ImGui.GetWindowDrawList();
+        var textSize = ImGui.CalcTextSize(text);
+        draw.AddRectFilled(min, max, background, 3f);
+        draw.AddText(min + (max - min - textSize) / 2f, foreground, text);
+    }
+
+    private void DrawPositional(uint actionId, float size)
+    {
+        if (!plugin.Configuration.ShowPositionals)
+            return;
+        var positional = PositionalCatalog.Get(actionId);
+        if (positional == PositionalKind.None)
+            return;
+
+        var label = positional == PositionalKind.Flank ? "FLANK" : "REAR";
+        var iconMin = ImGui.GetItemRectMin();
+        var textSize = ImGui.CalcTextSize(label);
+        var badgeSize = new Vector2(textSize.X + 8f, textSize.Y + 4f);
+        var min = iconMin + new Vector2(Math.Max(0, size - badgeSize.X), Math.Max(0, size - badgeSize.Y));
+        DrawBadge(label, min, min + badgeSize, 0xDD12301B, 0xFF67F58B);
+    }
+
+    private void DrawEnemyCount(int count, float size)
+    {
+        if (!plugin.Configuration.ShowEnemyCount || count <= 1)
+            return;
+        var iconMin = ImGui.GetItemRectMin();
+        var label = $"x{count}";
+        var textSize = ImGui.CalcTextSize(label);
+        var badgeSize = new Vector2(textSize.X + 7f, textSize.Y + 4f);
+        var min = iconMin + new Vector2(Math.Max(0, size - badgeSize.X), 0);
+        DrawBadge(label, min, min + badgeSize, 0xDD111111, 0xFFFFFFFF);
+    }
+
+    private void DrawRangeFade(ActionInfo info)
+    {
+        if (!plugin.Configuration.ShowRangeFade || info.Range <= 0 || Plugin.TargetManager.Target == null)
+            return;
+        if (Plugin.TargetManager.Target.CurrentDistance <= info.Range)
+            return;
+        ImGui.GetWindowDrawList().AddRectFilled(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 0x99000000);
+    }
+
+    private unsafe void DrawGcdIndicator(RotationAnchor? anchor)
+    {
+        if (!plugin.Configuration.ShowGcdIndicator || anchor == null)
+            return;
+        var manager = ActionManager.Instance();
+        if (manager == null)
+            return;
+        var actionId = manager->GetAdjustedActionId(anchor.Value.SingleTargetAction);
+        var total = manager->GetRecastTime(ActionType.Action, actionId);
+        var elapsed = manager->GetRecastTimeElapsed(ActionType.Action, actionId);
+        if (total <= .01f || elapsed <= .01f || elapsed >= total)
+            return;
+
+        var available = Math.Clamp(elapsed / total, 0f, 1f);
+        var start = ImGui.GetCursorScreenPos();
+        var width = Math.Max(plugin.Configuration.IconSize, ImGui.GetContentRegionAvail().X);
+        var end = start + new Vector2(width, 4f);
+        var draw = ImGui.GetWindowDrawList();
+        draw.AddRectFilled(start, end, 0xAA242424, 2f);
+        draw.AddRectFilled(start, new Vector2(start.X + width * available, end.Y), 0xFF9A73E8, 2f);
+        ImGui.Dummy(new Vector2(width, 4f));
     }
 
     private unsafe void DrawCooldown(uint actionId)

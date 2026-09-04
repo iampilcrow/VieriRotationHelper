@@ -10,6 +10,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool Enabled = true;
     public bool ShowSingleTarget = true;
     public bool ShowAoe = true;
+    public bool ShowDynamic = true;
     public bool ShowOutOfCombat = true;
     public bool ShowWithoutTarget = true;
     public bool ShowActionNames = true;
@@ -18,8 +19,12 @@ public sealed class Configuration : IPluginConfiguration
     public bool Horizontal = true;
     public bool ShowCooldownSweep = true;
     public bool ShowGcdIndicator = true;
+    public bool ShowPositionals = true;
+    public bool ShowRangeFade = true;
+    public bool ShowEnemyCount = true;
     public bool DebugMode;
     public int PredictionCount = 5;
+    public int DynamicAoeTargetCount = 3;
     public float IconSize = 54f;
     public float FutureIconScale = 0.76f;
     public float Opacity = 1f;
@@ -35,6 +40,16 @@ public sealed class Configuration : IPluginConfiguration
         {
             ShowOutOfCombat = true;
             Version = 2;
+            Save();
+        }
+        if (Version < 3)
+        {
+            ShowDynamic = true;
+            ShowPositionals = true;
+            ShowRangeFade = true;
+            ShowEnemyCount = true;
+            DynamicAoeTargetCount = 3;
+            Version = 3;
             Save();
         }
     }

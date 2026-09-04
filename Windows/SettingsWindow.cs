@@ -14,7 +14,7 @@ internal sealed class SettingsWindow : Window
     {
         this.plugin = plugin;
         this.wrath = wrath;
-        Size = new Vector2(570, 610);
+        Size = new Vector2(610, 700);
         SizeCondition = ImGuiCond.FirstUseEver;
     }
 
@@ -30,11 +30,18 @@ internal sealed class SettingsWindow : Window
         ImGui.TextUnformatted("Suggestion bars");
         changed |= ImGui.Checkbox("Show Single Target", ref plugin.Configuration.ShowSingleTarget);
         changed |= ImGui.Checkbox("Show AoE", ref plugin.Configuration.ShowAoe);
+        changed |= ImGui.Checkbox("Show Dynamic (switches by nearby targets)", ref plugin.Configuration.ShowDynamic);
+        var aoeCount = plugin.Configuration.DynamicAoeTargetCount;
+        if (ImGui.SliderInt("Dynamic AoE at target count", ref aoeCount, 2, 8))
+        {
+            plugin.Configuration.DynamicAoeTargetCount = aoeCount;
+            changed = true;
+        }
         changed |= ImGui.Checkbox("Show while out of combat", ref plugin.Configuration.ShowOutOfCombat);
         changed |= ImGui.Checkbox("Show without a target", ref plugin.Configuration.ShowWithoutTarget);
         changed |= ImGui.Checkbox("Show action names", ref plugin.Configuration.ShowActionNames);
         changed |= ImGui.Checkbox("Show source/parity badge", ref plugin.Configuration.ShowSourceBadge);
-        changed |= ImGui.Checkbox("Lock both bars", ref plugin.Configuration.LockBars);
+        changed |= ImGui.Checkbox("Lock bars", ref plugin.Configuration.LockBars);
         changed |= ImGui.Checkbox("Horizontal layout", ref plugin.Configuration.Horizontal);
 
         var predictions = plugin.Configuration.PredictionCount;
@@ -53,6 +60,9 @@ internal sealed class SettingsWindow : Window
         ImGui.TextUnformatted("Timing and diagnostics");
         changed |= ImGui.Checkbox("Show cooldown sweep", ref plugin.Configuration.ShowCooldownSweep);
         changed |= ImGui.Checkbox("Show GCD indicator", ref plugin.Configuration.ShowGcdIndicator);
+        changed |= ImGui.Checkbox("Show positional cues", ref plugin.Configuration.ShowPositionals);
+        changed |= ImGui.Checkbox("Dim actions when target is out of range", ref plugin.Configuration.ShowRangeFade);
+        changed |= ImGui.Checkbox("Show nearby enemy count", ref plugin.Configuration.ShowEnemyCount);
         changed |= ImGui.Checkbox("Debug state and parity", ref plugin.Configuration.DebugMode);
 
         ImGui.Spacing();
