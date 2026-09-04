@@ -82,7 +82,8 @@ internal sealed class RotationBarWindow : Window
         if (plugin.Configuration.ShowRangeFade && info.Range > 0 && Plugin.TargetManager.Target is { } target && target.CurrentDistance > info.Range)
             draw.AddRectFilled(pos, pos + new Vector2(size), Color(0, 0, 0, .5f));
         var row = Plugin.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRowOrDefault(suggestion.ActionId);
-        var isWeave = row?.ActionCategory.RowId == 4 && suggestion.ActionId is not (2259 or 2261 or 2263);
+        var isWeave = SuggestionActionId.IsItem(suggestion.ActionId) ||
+            row?.ActionCategory.RowId == 4 && suggestion.ActionId is not (2259 or 2261 or 2263);
         DrawRecast(suggestion.ActionId, frame, pos, size, scale, isWeave);
         if (plugin.Configuration.ShowHotkeys && frame.Anchor is { } anchor)
         {
@@ -122,10 +123,13 @@ internal sealed class RotationBarWindow : Window
         var manager = ActionManager.Instance();
         if (manager == null)
             return;
-        var total = manager->GetRecastTime(ActionType.Action, actionId);
-        var elapsed = manager->GetRecastTimeElapsed(ActionType.Action, actionId);
-        var charges = manager->GetCurrentCharges(actionId);
-        var maxCharges = ActionManager.GetMaxCharges(actionId, Plugin.ObjectTable.LocalPlayer?.Level ?? 0);
+        var item = SuggestionActionId.IsItem(actionId);
+        var type = item ? ActionType.Item : ActionType.Action;
+        var nativeId = item ? SuggestionActionId.ItemRow(actionId) : actionId;
+        var total = manager->GetRecastTime(type, nativeId);
+        var elapsed = manager->GetRecastTimeElapsed(type, nativeId);
+        var charges = item ? 0 : manager->GetCurrentCharges(nativeId);
+        var maxCharges = item ? 0 : ActionManager.GetMaxCharges(nativeId, Plugin.ObjectTable.LocalPlayer?.Level ?? 0);
         if (maxCharges > 1 && charges > 0)
             Text(charges.ToString(), pos + new Vector2(size - 14 * scale, size - 14 * scale), 26f * .8f * scale, 0xFFFFFFFF, true, 0x800000BF);
         if (!plugin.Configuration.ShowCooldownSweep)

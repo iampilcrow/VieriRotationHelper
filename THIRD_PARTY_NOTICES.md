@@ -41,3 +41,16 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
+## Bundled helper libraries
+
+The isolated decision engine includes ECommons (MIT, Copyright 2023
+NightmareXIV) and PunishLib (BSD 3-Clause, Copyright 2023 Puni.sh). Their full
+licenses are included under `Engine/Upstream/ECommons/LICENSE.md` and
+`Engine/Upstream/PunishLib/LICENCE.md` in the corresponding source, and in the
+runtime package's `licenses` directory. Exact revisions are recorded in
+`upstream/engine.lock.json`. Assembly names are isolated to this plugin.
+
+WrathCombo.API is not a dependency of this build. The unused upstream IPC/UI
+code compiles against local compatibility names; no API client, provider, or
+lease is initialized. This plugin never enables or disables live Wrath options.

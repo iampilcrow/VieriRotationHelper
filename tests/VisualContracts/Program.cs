@@ -7,6 +7,25 @@ void Check(bool condition, string message)
     if (!condition) throw new Exception(message);
     checks++;
 }
+// Actual action-to-button resolution, independent of Dalamud and job-specific IDs.
+foreach (var (first, second, third) in new[] {
+    (9u,15u,3539u), (31u,37u,42u), (75u,78u,84u),
+    (2240u,2242u,2255u), (7477u,7478u,7481u), (34650u,34651u,34652u) })
+{
+    var consolidated = new ActionBinding[] { new(first, second, "1"), new(second, second, "2"), new(third, third, "3") };
+    Check(HotbarKeySelection.Resolve(consolidated, second, first, true) == "1", "Consolidated lead uses its working anchor");
+    var separate = new ActionBinding[] { new(first, first, "1"), new(second, second, "2"), new(third, third, "3") };
+    Check(HotbarKeySelection.Resolve(separate, second, first, true) == "2", "Disabling consolidation changes to the real second key");
+    Check(HotbarKeySelection.Resolve(separate, third, first, false) == "3", "Third action uses its actual key without Wrath");
+    Check(HotbarKeySelection.Resolve([new(first, first, "1")], second, first, false) == null, "Never invent a key for an unbound action");
+    Check(HotbarKeySelection.Resolve([new(second, third, "2")], second, first, false) == null, "Raw ID match cannot use a button overwritten with a different action");
+    Check(HotbarKeySelection.Resolve([new(first, third, "C4")], third, first, false) == "C4", "Native transforms retain actual modifier key");
+    Check(HotbarKeySelection.Resolve([new(second, second, "S7")], second, first, false) == "S7", "Rebinding is reflected without a job change");
+    Check(HotbarKeySelection.Resolve([], second, first, false) == null, "Logout/empty hotbar cannot reuse old character keys");
+}
+Check(SuggestionActionId.Item(1044110) == SuggestionActionId.Item(44110), "HQ item hotkeys match the base consumable suggestion");
+Check(SuggestionActionId.ItemRow(2044110) == 44110, "Synthetic IDs must be decoded before native item queries");
+Check(!SuggestionActionId.IsItem(2000000) && !SuggestionActionId.IsItem(3000000), "Sentinels are not real consumables");
 Check(HildaVisualStyle.Position(0, 65, 50, 3, true) == new Vector2(20, 20), "Hilda lead origin");
 Check(HildaVisualStyle.Position(1, 65, 50, 3, true) == new Vector2(91, 27.5f), "Hilda second icon and vertical centering");
 Check(HildaVisualStyle.Position(2, 65, 50, 3, true) == new Vector2(147, 27.5f), "Hilda third icon spacing");

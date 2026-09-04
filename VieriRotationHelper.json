@@ -1,8 +1,8 @@
 {
   "Author": "Valentina Vieri",
   "Name": "VieriRotationHelper",
-  "Punchline": "Wrath-parity rotation suggestions for every combat job.",
-  "Description": "Single-target, AoE, and dynamic suggestion bars with Hilda's side-by-side icon presentation, game frames, outlined hotkeys, positional symbols, and icon cooldowns. No spell-name labels or status banners on the bars. When Wrath Combo is loaded, lead suggestions are read from its live action replacements. This plugin never executes actions.",
+  "Punchline": "Independent Wrath-powered PvE rotation suggestions.",
+  "Description": "Single-target, AoE, and dynamic bars using bundled Wrath PvE job evaluators even when consolidation is disabled or Wrath is unloaded. Hilda-style side-by-side icons, actual working hotkeys, positional symbols, and cooldowns. Wrath options are copied read-only. Smaller combo previews are conditional, not guaranteed future decisions. This plugin never executes actions.",
   "IconUrl": "https://www.thedailypilcrow.com/dalamud/assets/VieriLogo.png",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,

@@ -19,26 +19,12 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
     {
         Refresh();
         var manager = ActionManager.Instance();
-        // For the live lead, show the button whose replacement was evaluated.
-        // Never claim a future action can be pressed on that button right now.
-        if (liveLead && manager != null && manager->GetAdjustedActionId(anchor) == action)
-        {
-            foreach (var binding in bindings)
-                if (binding.Action == anchor)
-                    return binding.Key;
-        }
+        if (manager == null) return null;
+        var current = new List<ActionBinding>(bindings.Count);
         foreach (var binding in bindings)
-            if (binding.Action == action)
-                return binding.Key;
-        if (manager != null)
-            foreach (var binding in bindings)
-                if (manager->GetAdjustedActionId(binding.Action) == action)
-                    return binding.Key;
-        foreach (var related in HildaHotkeyFamilies.Related(action))
-            foreach (var binding in bindings)
-                if (binding.Action == related)
-                    return binding.Key;
-        return null;
+            current.Add(new(binding.Action, SuggestionActionId.IsItem(binding.Action)
+                ? binding.Action : manager->GetAdjustedActionId(binding.Action), binding.Key));
+        return HotbarKeySelection.Resolve(current, action, anchor, liveLead);
     }
 
     private unsafe void Refresh()
@@ -52,7 +38,7 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
         }
         if (Environment.TickCount64 < nextRefresh && character == player.GameObjectId && job == player.ClassJob.RowId)
             return;
-        nextRefresh = Environment.TickCount64 + 500;
+        nextRefresh = Environment.TickCount64 + 100;
         character = player.GameObjectId;
         job = player.ClassJob.RowId;
         bindings.Clear();
@@ -77,7 +63,7 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
             for (var slotIndex = 0; slotIndex < 12; slotIndex++)
             {
                 var slot = module->StandardHotbars[(int)hotbarId].Slots[slotIndex];
-                if (slot.CommandType != RaptureHotbarModule.HotbarSlotType.Action || slot.CommandId == 0)
+                if (slot.CommandType is not (RaptureHotbarModule.HotbarSlotType.Action or RaptureHotbarModule.HotbarSlotType.Item) || slot.CommandId == 0)
                     continue;
                 var node = addon->UldManager.NodeList[20 - slotIndex];
                 if (node == null || (int)node->Type < 1000)
@@ -90,7 +76,8 @@ internal sealed class HotkeyResolver(IGameGui gameGui)
                     continue;
                 var label = ((AtkTextNode*)textNode)->NodeText.ToString();
                 if (!string.IsNullOrWhiteSpace(label))
-                    bindings.Add((slot.CommandId, HotkeyLabel.Normalize(label)));
+                    bindings.Add((slot.CommandType == RaptureHotbarModule.HotbarSlotType.Item
+                        ? SuggestionActionId.Item(slot.CommandId) : slot.CommandId, HotkeyLabel.Normalize(label)));
             }
         }
     }

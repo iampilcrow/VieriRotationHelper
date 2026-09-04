@@ -28,13 +28,12 @@ internal sealed class RotationCoordinator(
             : mode;
 
         var embeddedLead = embedded.GetLead(anchor, effectiveMode);
-        var sourceAction = effectiveMode == RotationMode.SingleTarget
-            ? anchor.SingleTargetAction
-            : anchor.AoeAction;
+        var sourceAction = embedded.EntryAction;
 
         RotationSuggestion lead;
         var parity = false;
-        if (wrath.IsLoaded)
+        if (wrath.IsLoaded && sourceAction != 0 && embeddedLead.ActionId != 0 &&
+            wrath.GetAdjusted(sourceAction) != wrath.GetNativeAdjusted(sourceAction))
         {
             var exact = wrath.GetAdjusted(sourceAction);
             lead = new RotationSuggestion(exact, effectiveMode, SuggestionSource.LiveWrath, true,
@@ -46,11 +45,11 @@ internal sealed class RotationCoordinator(
             lead = embeddedLead;
         }
 
-        var forecast = embedded.Forecast(anchor, effectiveMode, lead.ActionId,
+        var forecast = lead.ActionId == 0 ? [] : embedded.Forecast(anchor, effectiveMode, lead.ActionId,
             Math.Clamp(configuration.PredictionCount, 1, 10));
-        var status = wrath.IsLoaded
+        var status = lead.Source == SuggestionSource.LiveWrath
             ? parity ? "LIVE WRATH · PARITY" : "LIVE WRATH · FORECAST DIFFERS"
-            : "EMBEDDED VIERI";
+            : "INDEPENDENT WRATH RULES";
         var actionEnemyCount = targets.Snapshot(lead.ActionId).EnemyCount;
         return new(anchor, lead, forecast, wrath.IsLoaded, parity, effectiveMode,
             targetSnapshot.EnemyCount, actionEnemyCount, status);

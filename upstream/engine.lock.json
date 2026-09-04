@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "wrath": "736597dee5d5ee90cd043becf27e8d973fda43e0",
+  "ecommons": "e76756e632558563bbbcb4ffb3d0499ed11e2eea",
+  "punishlib": "f8b3e807c02f02f0f05fae3cdf7d92bc9d0516b5",
+  "mode": "read-only-pve-evaluation",
+  "assemblies": ["VieriWrathEngine", "VieriWrathEngine.ECommons", "VieriWrathEngine.PunishLib"],
+  "sourceRoot": "Engine/Upstream",
+  "adaptations": [
+    "Non-hooking ActionReplacer substitute; normal source excluded from build",
+    "Independent CustomCombo.Suggest entry point and preset scope",
+    "Ignore hotbar consolidation switch during evaluator entry validation",
+    "Immutable read-only guards on upstream mutation paths",
+    "Forwarding-only outgoing observer; no UseAction/queue/retarget hooks",
+    "Prevent config writes, item registration/use, movement and auto-rotation",
+    "Private configuration copy and live native-action callback",
+    "Isolated assembly names; no Wrath plugin installation/IPC initialization"
+  ]
+}

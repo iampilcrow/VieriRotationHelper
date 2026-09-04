@@ -2,15 +2,57 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace VieriRotationHelper;
 
-internal sealed class EmbeddedRotationProvider
+internal sealed class EmbeddedRotationProvider : IDisposable
 {
-    internal unsafe RotationSuggestion GetLead(RotationAnchor anchor, RotationMode mode)
+    private readonly WrathCombo.ReadOnlyRuntime? runtime;
+    private readonly WrathLiveProvider wrath;
+    private readonly Configuration configuration;
+    internal uint EntryAction { get; private set; }
+    internal string Status { get; private set; } = "Waiting for a character.";
+    private long nextErrorLog;
+
+    internal EmbeddedRotationProvider(Plugin owner, WrathLiveProvider wrath)
     {
-        var sequence = mode == RotationMode.SingleTarget ? anchor.SingleTargetCombo : anchor.AoeCombo;
-        var action = ResolveComboStep(sequence);
-        return new RotationSuggestion(action, mode, SuggestionSource.EmbeddedVieri, true,
-            "Embedded job rules selected the next usable combo action.");
+        this.wrath = wrath;
+        configuration = owner.Configuration;
+        try
+        {
+            runtime = new WrathCombo.ReadOnlyRuntime(Plugin.PluginInterface, owner, wrath.GetNativeAdjusted);
+        }
+        catch (Exception ex)
+        {
+            Status = "Decision engine initialization failed: " + ex.Message;
+            Plugin.Log.Error(ex, Status);
+        }
     }
+
+    internal RotationSuggestion GetLead(RotationAnchor anchor, RotationMode mode)
+    {
+        try
+        {
+            if (runtime == null)
+                return new(0, mode, SuggestionSource.EmbeddedVieri, false, Status);
+            var decision = runtime.Evaluate(anchor.JobId, mode == RotationMode.Aoe, wrath.GetOptions(configuration));
+            EntryAction = decision.EntryAction;
+            Status = $"{anchor.Job}: {decision.Preset} — {decision.Detail}";
+            return new(decision.ActionId, mode, SuggestionSource.EmbeddedVieri, true,
+                $"{decision.Preset}: {decision.Detail}");
+        }
+        catch (Exception ex)
+        {
+            if (Environment.TickCount64 >= nextErrorLog)
+            {
+                nextErrorLog = Environment.TickCount64 + 10000;
+                Plugin.Log.Error(ex, $"Independent Wrath evaluator failed for {anchor.Job}/{mode}.");
+            }
+            EntryAction = 0;
+            Status = "Suggestions paused: " + ex.Message;
+            return new(0, mode, SuggestionSource.EmbeddedVieri, false,
+                "Suggestions paused: " + ex.Message);
+        }
+    }
+
+    public void Dispose() => runtime?.Dispose();
 
     internal IReadOnlyList<RotationSuggestion> Forecast(
         RotationAnchor anchor,
@@ -27,33 +69,25 @@ internal sealed class EmbeddedRotationProvider
 
         var result = new List<RotationSuggestion>(count - 1);
         var index = Array.IndexOf(sequence, lead);
-        if (index < 0)
-            index = 0;
+        // Never invent a basic combo continuation for an unrelated burst action.
+        if (index < 0) return [];
 
         for (var i = 1; i < count; i++)
         {
-            var action = sequence[(index + i) % sequence.Length];
+            // Stop at the end rather than predicting another entire cycle.
+            if (index + i >= sequence.Length) break;
+            var action = wrath.GetNativeAdjusted(sequence[index + i]);
+            if (!IsLearned(action)) break;
             result.Add(new RotationSuggestion(action, mode, SuggestionSource.EmbeddedVieri, false,
-                "Forecast from the embedded simulated combo timeline."));
+                "Conditional combo continuation, not a guaranteed future Wrath decision."));
         }
         return result;
     }
 
-    private static unsafe uint ResolveComboStep(uint[] sequence)
+    private static unsafe bool IsLearned(uint action)
     {
-        if (sequence.Length == 0)
-            return 0;
-
         var manager = ActionManager.Instance();
-        if (manager == null)
-            return sequence[0];
-
-        var last = manager->Combo.Action;
-        if (manager->Combo.Timer <= 0)
-            return manager->GetAdjustedActionId(sequence[0]);
-
-        var index = Array.IndexOf(sequence, last);
-        var next = index >= 0 && index + 1 < sequence.Length ? sequence[index + 1] : sequence[0];
-        return manager->GetAdjustedActionId(next);
+        return manager != null && manager->GetActionStatus(ActionType.Action, action,
+            checkRecastActive: false, checkCastingActive: false) != 573;
     }
 }

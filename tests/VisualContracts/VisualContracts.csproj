@@ -3,10 +3,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../HildaVisualStyle.cs" Link="HildaVisualStyle.cs" />
     <Compile Include="../../HotkeyLabel.cs" Link="HotkeyLabel.cs" />
     <Compile Include="../../HildaHotkeyFamilies.cs" Link="HildaHotkeyFamilies.cs" />
+    <Compile Include="../../HotbarKeySelection.cs" Link="HotbarKeySelection.cs" />
+    <Compile Include="../../SuggestionActionId.cs" Link="SuggestionActionId.cs" />
   </ItemGroup>
 </Project>

@@ -26,9 +26,11 @@ public sealed class Plugin : IDalamudPlugin
     internal Configuration Configuration { get; }
     private readonly WindowSystem windows = new("VieriRotationHelper");
     private readonly SettingsWindow settingsWindow;
+    private readonly EmbeddedRotationProvider engine;
     internal OverlayFonts Fonts { get; }
     internal HotkeyResolver Hotkeys { get; }
     internal bool SettingsOpen => settingsWindow.IsOpen;
+    internal string EngineStatus => engine.Status;
 
     public Plugin()
     {
@@ -38,7 +40,8 @@ public sealed class Plugin : IDalamudPlugin
         Hotkeys = new HotkeyResolver(GameGui);
 
         var wrath = new WrathLiveProvider(PluginInterface);
-        var coordinator = new RotationCoordinator(ObjectTable, wrath, new EmbeddedRotationProvider(),
+        engine = new EmbeddedRotationProvider(this, wrath);
+        var coordinator = new RotationCoordinator(ObjectTable, wrath, engine,
             new TargetAnalysis(ObjectTable, TargetManager, DataManager), Configuration);
         var display = new ActionDisplay(DataManager);
 
@@ -64,6 +67,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= OpenSettings;
         CommandManager.RemoveHandler(Command);
         windows.RemoveAllWindows();
+        engine.Dispose();
         Fonts.Dispose();
         Configuration.Save();
     }

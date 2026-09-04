@@ -58,3 +58,4 @@ if ((Get-FileHash $fontPath -Algorithm SHA256).Hash -ne $hildaLock.files.'Media/
 }
 dotnet run --project (Join-Path $PSScriptRoot '..\tests\VisualContracts') -c Release
 if ($LASTEXITCODE -ne 0) { throw 'Hilda visual contracts failed.' }
+& (Join-Path $PSScriptRoot 'Test-WrathEngine.ps1')

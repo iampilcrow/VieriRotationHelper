@@ -65,7 +65,8 @@ internal sealed class SettingsWindow : Window
         ImGui.TextWrapped("Hilda presentation: game icon frames, outlined hotkeys, positional symbols, and icon cooldowns. Bars contain no spell names, mode banners, or status labels. Unlock bars to drag them; hover an icon while settings are open for details.");
 
         ImGui.Spacing();
-        ImGui.TextWrapped("The lead icon is authoritative. With Wrath loaded it is the exact action Wrath exposes for that bar's rotation entry point. Future icons are Vieri's simulated forecast and update immediately as live state changes. The plugin never presses or executes an action.");
+        ImGui.TextWrapped("The next-action recommendation uses bundled Wrath job rules even with consolidation disabled or Wrath unloaded. Your Wrath options are copied read-only. Smaller icons are conditional combo continuations, not guaranteed future decisions. Hotkeys only show when that button currently resolves to the suggested action. This plugin never presses or executes actions.");
+        ImGui.TextWrapped(plugin.EngineStatus);
         ImGui.Spacing();
         ImGui.TextDisabled("Command: /vrh  ·  /vrh toggle");
 

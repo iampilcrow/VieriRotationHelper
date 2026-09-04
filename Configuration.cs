@@ -22,6 +22,8 @@ public sealed class Configuration : IPluginConfiguration
     public bool ShowRangeFade = true;
     public bool ShowEnemyCount = true;
     public bool DebugMode;
+    // A private copy, never written back to Wrath's configuration.
+    public string? WrathOptionsSnapshot;
     public int PredictionCount = 3;
     public int DynamicAoeTargetCount = 3;
     public float IconSize = 65f;
