@@ -6,8 +6,11 @@ bars for every standard combat job and never executes actions.
 
 The dynamic bar changes between single-target and AoE suggestions from the
 number of valid hostile targets within the active AoE's real radius. Action
-icons can also show Hilda-style flank/rear cues, nearby enemy counts, range
-dimming, cooldown sweeps, and a GCD progress strip.
+icons use Hilda's game-frame and recast textures, side-by-side 65/50-pixel
+layout, outlined keyboard hotkeys in its Miedinger font, green positional
+symbols, weave symbols, charge counts, enemy counts, and range dimming.
+No spell names, mode banners, colored lead borders, or separate GCD strips
+appear on the bars. Open settings and hover an icon for names/diagnostics.
 
 ## Provider model
 
@@ -15,9 +18,9 @@ dimming, cooldown sweeps, and a GCD progress strip.
   replacement entry point Wrath currently exposes for the active job and mode.
 - When Wrath Combo is disabled, the embedded Vieri provider continues to
   produce suggestions.
-- The remaining icons are a simulated forecast. They are intentionally marked
-  separately from the authoritative lead action.
-- Debug mode exposes live source and parity state.
+- The smaller remaining icons are a simulated forecast, not additional live
+  Wrath outputs. This display update does not change the provider logic.
+- Debug mode exposes live source and parity state in settings-open tooltips.
 
 ## Commands
 
@@ -27,6 +30,9 @@ dimming, cooldown sweeps, and a GCD progress strip.
 All three bars open automatically in separate default positions and are visible
 out of combat by default so they can be positioned immediately. Each fixed bar
 and the dynamic bar can be toggled separately.
+Keyboard hotkeys are read from the current character's hotbar labels. A live
+Wrath lead resolves to its real replacement button. Unbound or unknown actions
+do not receive invented hotkeys. Unlock bars to drag them into place.
 
 ## Upstream maintenance
 

@@ -18,6 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
     [PluginService] internal static ITargetManager TargetManager { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
+    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
@@ -25,11 +26,16 @@ public sealed class Plugin : IDalamudPlugin
     internal Configuration Configuration { get; }
     private readonly WindowSystem windows = new("VieriRotationHelper");
     private readonly SettingsWindow settingsWindow;
+    internal OverlayFonts Fonts { get; }
+    internal HotkeyResolver Hotkeys { get; }
+    internal bool SettingsOpen => settingsWindow.IsOpen;
 
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Configuration.Initialize(PluginInterface);
+        Fonts = new OverlayFonts();
+        Hotkeys = new HotkeyResolver(GameGui);
 
         var wrath = new WrathLiveProvider(PluginInterface);
         var coordinator = new RotationCoordinator(ObjectTable, wrath, new EmbeddedRotationProvider(),
@@ -58,6 +64,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= OpenSettings;
         CommandManager.RemoveHandler(Command);
         windows.RemoveAllWindows();
+        Fonts.Dispose();
         Configuration.Save();
     }
 

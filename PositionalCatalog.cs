@@ -13,7 +13,6 @@ internal static class PositionalCatalog
         [25772] = PositionalKind.Rear,  // Chaotic Spring
         [88] = PositionalKind.Rear,     // Chaos Thrust
         [2258] = PositionalKind.Rear,   // Trick Attack
-        [36958] = PositionalKind.Rear,  // Kunai's Bane (upgraded Trick Attack)
         [2255] = PositionalKind.Rear,   // Aeolian Edge
         [3563] = PositionalKind.Flank,  // Armor Crush
         [7481] = PositionalKind.Rear,   // Gekko

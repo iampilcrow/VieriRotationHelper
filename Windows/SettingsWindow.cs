@@ -39,8 +39,7 @@ internal sealed class SettingsWindow : Window
         }
         changed |= ImGui.Checkbox("Show while out of combat", ref plugin.Configuration.ShowOutOfCombat);
         changed |= ImGui.Checkbox("Show without a target", ref plugin.Configuration.ShowWithoutTarget);
-        changed |= ImGui.Checkbox("Show action names", ref plugin.Configuration.ShowActionNames);
-        changed |= ImGui.Checkbox("Show source/parity badge", ref plugin.Configuration.ShowSourceBadge);
+        changed |= ImGui.Checkbox("Show hotkeys", ref plugin.Configuration.ShowHotkeys);
         changed |= ImGui.Checkbox("Lock bars", ref plugin.Configuration.LockBars);
         changed |= ImGui.Checkbox("Horizontal layout", ref plugin.Configuration.Horizontal);
 
@@ -52,18 +51,18 @@ internal sealed class SettingsWindow : Window
         }
         changed |= ImGui.SliderFloat("Lead icon size", ref plugin.Configuration.IconSize, 32f, 96f, "%.0f px");
         changed |= ImGui.SliderFloat("Future icon scale", ref plugin.Configuration.FutureIconScale, .45f, 1f, "%.2f");
+        changed |= ImGui.SliderFloat("Icon spacing", ref plugin.Configuration.IconSpacing, 0f, 12f, "%.0f");
         changed |= ImGui.SliderFloat("Opacity", ref plugin.Configuration.Opacity, .2f, 1f, "%.2f");
-        changed |= ImGui.ColorEdit4("Background", ref plugin.Configuration.BackgroundColor);
-        changed |= ImGui.ColorEdit4("Border", ref plugin.Configuration.BorderColor);
 
         ImGui.Separator();
         ImGui.TextUnformatted("Timing and diagnostics");
         changed |= ImGui.Checkbox("Show cooldown sweep", ref plugin.Configuration.ShowCooldownSweep);
-        changed |= ImGui.Checkbox("Show GCD indicator", ref plugin.Configuration.ShowGcdIndicator);
+        changed |= ImGui.Checkbox("Show weave icon", ref plugin.Configuration.ShowWeaveIcon);
         changed |= ImGui.Checkbox("Show positional cues", ref plugin.Configuration.ShowPositionals);
         changed |= ImGui.Checkbox("Dim actions when target is out of range", ref plugin.Configuration.ShowRangeFade);
         changed |= ImGui.Checkbox("Show nearby enemy count", ref plugin.Configuration.ShowEnemyCount);
         changed |= ImGui.Checkbox("Debug state and parity", ref plugin.Configuration.DebugMode);
+        ImGui.TextWrapped("Hilda presentation: game icon frames, outlined hotkeys, positional symbols, and icon cooldowns. Bars contain no spell names, mode banners, or status labels. Unlock bars to drag them; hover an icon while settings are open for details.");
 
         ImGui.Spacing();
         ImGui.TextWrapped("The lead icon is authoritative. With Wrath loaded it is the exact action Wrath exposes for that bar's rotation entry point. Future icons are Vieri's simulated forecast and update immediately as live state changes. The plugin never presses or executes an action.");

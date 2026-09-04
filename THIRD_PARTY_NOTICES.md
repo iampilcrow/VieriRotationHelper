@@ -1,5 +1,16 @@
 # Third-party notices
 
+## Hilda display reference
+
+The overlay renderer, keyboard-label formatting, positional glyph selection,
+and bundled Miedinger font asset reference Hilda 7.5.1.0 under the owner's
+permission supplied for this project. Hilda assembly and font hashes are
+recorded in `upstream/hilda.lock.json`. Original third-party rights remain with
+their respective owners; the project's MIT license does not relicense those
+assets. No Hilda assembly is redistributed or required.
+
+## Wrath Combo
+
 VieriRotationHelper's embedded rotation rules and compatibility metadata are
 derived from Wrath Combo, pinned in `upstream/wrath.lock.json`.
 

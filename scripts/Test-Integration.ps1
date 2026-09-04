@@ -45,3 +45,16 @@ if ($positionals -notmatch 'PositionalKind\.Flank' -or $positionals -notmatch 'P
 }
 
 Write-Host "Hilda-display checks passed: dynamic bar, target routing, and flank/rear metadata are present."
+
+if ($window -match '"FLANK"|"REAR"|DrawGcdIndicator|ShowActionNames|ShowSourceBadge|DrawBadge') {
+    throw "Do not restore text badges, spell names, banners, or extra GCD strips to Hilda bars."
+}
+if ($window -notmatch 'NoTitleBar' -or $window -notmatch 'NoBackground' -or $window -notmatch 'Hotkeys.Resolve') {
+    throw "Hilda bars must remain transparent, titleless, and connected to actual hotkeys."
+}
+$fontPath = Join-Path $PSScriptRoot '..\Media\Fonts\Miedinger.ttf'
+if ((Get-FileHash $fontPath -Algorithm SHA256).Hash -ne $hildaLock.files.'Media/Fonts/Miedinger.ttf') {
+    throw "The font no longer matches the pinned Hilda asset."
+}
+dotnet run --project (Join-Path $PSScriptRoot '..\tests\VisualContracts') -c Release
+if ($LASTEXITCODE -ne 0) { throw 'Hilda visual contracts failed.' }
