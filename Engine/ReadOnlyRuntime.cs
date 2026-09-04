@@ -147,6 +147,25 @@ public sealed class ReadOnlyRuntime : IDisposable
         }
     }
 
+    public IReadOnlyList<Decision> Forecast(uint job, bool aoe, string? configurationJson,
+        uint leadAction, int totalCount)
+    {
+        if (leadAction == 0 || totalCount <= 1 ||
+            leadAction > Combos.PvE.All.Items && leadAction < Combos.PvE.All.Pomanders) return [];
+        var result = new List<Decision>(totalCount - 1);
+        using var timeline = PredictionContext.Begin();
+        var prior = leadAction;
+        for (var i = 1; i < totalCount; i++)
+        {
+            timeline.Advance(prior);
+            var next = Evaluate(job, aoe, configurationJson);
+            if (next.ActionId == 0) break;
+            result.Add(next);
+            prior = next.ActionId;
+        }
+        return result;
+    }
+
     private static bool IsRotation(Preset preset, uint job, bool aoe)
     {
         var p = PresetStorage.AllPresets[preset];

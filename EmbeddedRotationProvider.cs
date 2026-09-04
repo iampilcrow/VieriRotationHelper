@@ -60,34 +60,12 @@ internal sealed class EmbeddedRotationProvider : IDisposable
         uint lead,
         int count)
     {
-        if (count <= 1)
+        if (count <= 1 || runtime == null)
             return [];
-
-        var sequence = mode == RotationMode.SingleTarget ? anchor.SingleTargetCombo : anchor.AoeCombo;
-        if (sequence.Length <= 1)
-            return [];
-
-        var result = new List<RotationSuggestion>(count - 1);
-        var index = Array.IndexOf(sequence, lead);
-        // Never invent a basic combo continuation for an unrelated burst action.
-        if (index < 0) return [];
-
-        for (var i = 1; i < count; i++)
-        {
-            // Stop at the end rather than predicting another entire cycle.
-            if (index + i >= sequence.Length) break;
-            var action = wrath.GetNativeAdjusted(sequence[index + i]);
-            if (!IsLearned(action)) break;
-            result.Add(new RotationSuggestion(action, mode, SuggestionSource.EmbeddedVieri, false,
-                "Conditional combo continuation, not a guaranteed future Wrath decision."));
-        }
-        return result;
-    }
-
-    private static unsafe bool IsLearned(uint action)
-    {
-        var manager = ActionManager.Instance();
-        return manager != null && manager->GetActionStatus(ActionType.Action, action,
-            checkRecastActive: false, checkCastingActive: false) != 573;
+        return runtime.Forecast(anchor.JobId, mode == RotationMode.Aoe, wrath.GetOptions(configuration), lead, count)
+            .Select(decision => new RotationSuggestion(decision.ActionId, mode,
+                SuggestionSource.EmbeddedVieri, true,
+                $"Predicted from {decision.Preset} after advancing the shadow combat timeline."))
+            .ToArray();
     }
 }

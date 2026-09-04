@@ -535,7 +535,7 @@ internal partial class AST
 
         public override bool HasCooldowns()
         {
-            if (GetCooldown(EarthlyStar).CooldownElapsed >= 4f)
+            if (GetCooldownElapsed(EarthlyStar) >= 4f)
                 return false;
 
             if (!ActionReady(Lightspeed))

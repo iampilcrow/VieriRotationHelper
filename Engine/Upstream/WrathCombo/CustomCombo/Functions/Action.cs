@@ -80,9 +80,11 @@ internal abstract partial class CustomComboFunctions
 
     /// <summary> Gets the amount of time since an action was used, in seconds. </summary>
     /// <param name="actionId"> The action ID. </param>
-    public static float TimeSinceActionUsed(uint actionId) => ActionTimestamps.TryGetValue(actionId, out long timestamp)
-        ? (Environment.TickCount64 - timestamp) / 1000f
-        : -1f;
+    public static float TimeSinceActionUsed(uint actionId) => PredictionContext.Current is { } prediction && prediction.WasUsed(actionId)
+        ? prediction.TimeSince(actionId)
+        : ActionTimestamps.TryGetValue(actionId, out long timestamp)
+            ? (Environment.TickCount64 - timestamp) / 1000f
+            : -1f;
 
     /// <summary> Gets the amount of time since an action was successfully cast, in seconds. </summary>
     /// <param name="actionId"> The action ID. </param>
@@ -194,19 +196,26 @@ internal abstract partial class CustomComboFunctions
 
     /// <summary> Checks if an action was the last action performed. </summary>
     /// <param name="actionId"> The action ID. </param>
-    public static bool WasLastAction(uint actionId) => CombatActions.Count > 0 && CombatActions.LastOrDefault().ActionID == actionId;
+    public static bool WasLastAction(uint actionId) => PredictionContext.Current?.WasLast(actionId) ??
+        (CombatActions.Count > 0 && CombatActions.LastOrDefault().ActionID == actionId);
 
     /// <summary> Checks if an action was the last weaponskill performed. </summary>
     /// <param name="actionId"> The action ID. </param>
-    public static bool WasLastWeaponskill(uint actionId) => LastWeaponskill == actionId;
+    public static bool WasLastWeaponskill(uint actionId) => PredictionContext.Current is { } prediction
+        ? prediction.WasLast(actionId) && GetAttackType(actionId) == ActionAttackType.Weaponskill
+        : LastWeaponskill == actionId;
 
     /// <summary> Checks if an action was the last spell performed. </summary>
     /// <param name="actionId"> The action ID. </param>
-    public static bool WasLastSpell(uint actionId) => LastSpell == actionId;
+    public static bool WasLastSpell(uint actionId) => PredictionContext.Current is { } prediction
+        ? prediction.WasLast(actionId) && GetAttackType(actionId) == ActionAttackType.Spell
+        : LastSpell == actionId;
 
     /// <summary> Checks if an action was the last ability performed. </summary>
     /// <param name="actionId"> The action ID. </param>
-    public static bool WasLastAbility(uint actionId) => LastAbility == actionId;
+    public static bool WasLastAbility(uint actionId) => PredictionContext.Current is { } prediction
+        ? prediction.WasLast(actionId) && GetAttackType(actionId) == ActionAttackType.Ability
+        : LastAbility == actionId;
 
     /// <summary> Gets the amount of times the last action was used in a row. </summary>
     public static int LastActionCounter() => LastActionUseCount;
@@ -293,10 +302,12 @@ internal abstract partial class CustomComboFunctions
     }
 
     /// <summary> Checks if a certain amount of actions were weaved within the GCD window. </summary>
-    public static bool HasWeaved(int weaveAmount = 1) => WeaveActions.Count >= weaveAmount;
+    public static bool HasWeaved(int weaveAmount = 1) =>
+        (PredictionContext.Current?.Weaves.Count ?? WeaveActions.Count) >= weaveAmount;
 
     /// <summary> Checks if a specific action was weaved within the GCD window. </summary>
-    public static bool HasWeavedAction(uint actionId) => WeaveActions.Contains(actionId);
+    public static bool HasWeavedAction(uint actionId) => PredictionContext.Current?.Weaves.Contains(actionId) ??
+        WeaveActions.Contains(actionId);
 
     /// <summary> Checks if an action can be weaved within the GCD window. </summary>
     /// <param name="estimatedWeaveTime">
@@ -314,10 +325,12 @@ internal abstract partial class CustomComboFunctions
         var remainingCast = player.TotalCastTime - player.CurrentCastTime;
         var animationLock = ActionManager.Instance()->AnimationLock;
 
-        return WeaveActions.Count < weaveLimit &&                                    // Multi-weave Check
+        var weaveCount = PredictionContext.Current?.Weaves.Count ?? WeaveActions.Count;
+        var predictedGcd = PredictionContext.Current?.RemainingGcd ?? RemainingGCD;
+        return weaveCount < weaveLimit &&                                    // Multi-weave Check
                animationLock <= BaseAnimationLock &&                                   // Animation Threshold
                remainingCast <= BaseActionQueue &&                                   // Casting Threshold
-               RemainingGCD > (remainingCast + estimatedWeaveTime + animationLock);  // Window End Threshold
+               predictedGcd > (remainingCast + estimatedWeaveTime + animationLock);  // Window End Threshold
     }
 
     /// <summary> Checks if an action can be weaved within the GCD window, limited by specific GCD thresholds. </summary>
@@ -336,11 +349,12 @@ internal abstract partial class CustomComboFunctions
     public static unsafe bool CanDelayedWeave(float weaveStart = 1.25f, float weaveEnd = BaseAnimationLock, int? maxWeaves = null)
     {
         var halfGCD = GCDTotal * 0.5f;
-        var remainingGCD = RemainingGCD;
+        var remainingGCD = PredictionContext.Current?.RemainingGcd ?? RemainingGCD;
         var weaveLimit = maxWeaves ?? Service.Configuration.MaximumWeavesPerWindow;
         var animationLock = ActionManager.Instance()->AnimationLock;
 
-        return WeaveActions.Count < weaveLimit &&                              // Multi-weave Check
+        var weaveCount = PredictionContext.Current?.Weaves.Count ?? WeaveActions.Count;
+        return weaveCount < weaveLimit &&                              // Multi-weave Check
                animationLock <= BaseActionQueue &&                             // Animation Threshold
                remainingGCD > (weaveEnd + animationLock) &&                    // Window End Threshold
                remainingGCD <= (weaveStart > halfGCD ? halfGCD : weaveStart);  // Window Start Threshold
@@ -361,10 +375,10 @@ internal abstract partial class CustomComboFunctions
     };
 
     /// <summary> Gets the current combo timer. </summary>
-    public static unsafe float ComboTimer => ActionManager.Instance()->Combo.Timer;
+    public static unsafe float ComboTimer => PredictionContext.Current?.ComboTimer ?? ActionManager.Instance()->Combo.Timer;
 
     /// <summary> Gets the last combo action. </summary>
-    public static unsafe uint ComboAction => ActionManager.Instance()->Combo.Action;
+    public static unsafe uint ComboAction => PredictionContext.Current?.ComboAction ?? ActionManager.Instance()->Combo.Action;
 
     /// <summary> Gets the current limit break action (PvE only). </summary>
     public static unsafe uint LimitBreakAction => Player.Object is null ? 0 : LimitBreakController.Instance()->GetActionId(Player.Object.Character(), (byte)Math.Max(0, LimitBreakLevel - 1));

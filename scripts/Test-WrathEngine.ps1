@@ -2,6 +2,8 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $source = Join-Path $root 'Engine/Upstream/WrathCombo'
 $runtime = Get-Content (Join-Path $root 'Engine/ReadOnlyRuntime.cs') -Raw
+$provider = Get-Content (Join-Path $root 'EmbeddedRotationProvider.cs') -Raw
+$prediction = Get-Content (Join-Path $root 'Engine/PredictionContext.cs') -Raw
 $checks = 0
 function Assert-Contract([bool]$condition, [string]$message) {
     if (!$condition) { throw $message }
@@ -32,6 +34,10 @@ foreach ($job in $jobs) {
 Assert-Contract ($runtime -match 'Active => true' -and $runtime -notmatch 'Active\s*\{[^}]*set') 'Read-only is an immutable assembly invariant'
 Assert-Contract ($runtime -match 'combo.Suggest\(entry\)' -and $runtime -notmatch '\.TryInvoke\(') 'Selection must not be gated by Wrath enabled state or IPC action requests'
 Assert-Contract ($runtime -notmatch 'new AutoRotationController|Provider.Init|new MovementHook|Module.All|RegisterCommands') 'No upstream automation may be started'
+Assert-Contract ($runtime -match 'PredictionContext\.Begin\(\)' -and $runtime -match 'timeline\.Advance\(prior\)') 'Forecast must advance an isolated timeline before every future Wrath decision'
+Assert-Contract ($provider -match 'runtime\.Forecast' -and $provider -notmatch 'SingleTargetCombo|AoeCombo|Array\.IndexOf') 'Preview cannot fall back to a hard-coded basic combo list'
+Assert-Contract ($prediction -match 'ComboAction' -and $prediction -match 'CooldownRemaining' -and $prediction -match 'RemainingGcd' -and $prediction -match 'Weaves') 'Prediction timeline must project combo, cooldown and weave state'
+Assert-Contract ($prediction -notmatch 'UseAction\(|SetTarget|QueuedActionId\s*=') 'Prediction timeline cannot issue actions, retarget, or alter queues'
 Assert-Contract ($runtime.IndexOf('P = this;') -lt $runtime.IndexOf('UIHelper = new UIHelper')) 'Private singleton must exist before UIHelper initialization'
 $facade = Get-Content (Join-Path $root 'Engine/ReadOnlyActionReplacer.cs') -Raw
 Assert-Contract ($facade -notmatch 'HookFrom|UseAction\(') 'Decision adapter may neither hook hotbars nor execute actions'

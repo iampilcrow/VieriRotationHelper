@@ -16,27 +16,30 @@ internal abstract partial class CustomComboFunctions
     /// <summary> Gets the cooldown total remaining time. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> Total remaining time of the cooldown. </returns>
-    public static float GetCooldownRemainingTime(uint actionID) => Service.ComboCache.GetCooldown(actionID).CooldownRemaining;
+    public static float GetCooldownRemainingTime(uint actionID) => PredictionContext.Current?.CooldownRemaining(actionID) ??
+        Service.ComboCache.GetCooldown(actionID).CooldownRemaining;
 
     /// <summary> Gets the cooldown remaining time for the next charge. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> Remaining time for the next charge of the cooldown. </returns>
-    public static float GetCooldownChargeRemainingTime(uint actionID) => Service.ComboCache.GetCooldown(actionID).ChargeCooldownRemaining;
+    public static float GetCooldownChargeRemainingTime(uint actionID) => PredictionContext.Current?.CooldownRemaining(actionID) ??
+        Service.ComboCache.GetCooldown(actionID).ChargeCooldownRemaining;
 
     /// <summary> Gets the elapsed cooldown time.</summary>
     /// <param name="actionID">Action ID to check</param>
     /// <returns> Time passed since action went on cooldown.</returns>
-    public static float GetCooldownElapsed(uint actionID) => Service.ComboCache.GetCooldown(actionID).CooldownElapsed;
+    public static float GetCooldownElapsed(uint actionID) => PredictionContext.Current?.CooldownElapsed(actionID) ??
+        Service.ComboCache.GetCooldown(actionID).CooldownElapsed;
 
     /// <summary> Gets a value indicating whether an action is on cooldown. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> True or false. </returns>
-    public static bool IsOnCooldown(uint actionID) => GetCooldown(actionID).IsCooldown;
+    public static bool IsOnCooldown(uint actionID) => GetCooldownRemainingTime(actionID) > 0;
 
     /// <summary> Gets a value indicating whether an action is off cooldown. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> True or false. </returns>
-    public static bool IsOffCooldown(uint actionID) => !GetCooldown(actionID).IsCooldown;
+    public static bool IsOffCooldown(uint actionID) => GetCooldownRemainingTime(actionID) <= 0;
 
     /// <summary> Check if an action was just used. </summary>
     /// <param name="actionID"> Action ID to check. </param>
@@ -44,6 +47,8 @@ internal abstract partial class CustomComboFunctions
     /// <returns> True or false. </returns>
     public static bool JustUsed(uint actionID, float variance = 3f)
     {
+        if (PredictionContext.Current is { } prediction && prediction.WasUsed(actionID))
+            return prediction.TimeSince(actionID) <= variance;
         return ActionTimestamps.TryGetValue(actionID, out long timestamp) && (Environment.TickCount64 - timestamp) <= (long)(variance * 1000f);
     }
 
@@ -69,12 +74,14 @@ internal abstract partial class CustomComboFunctions
     /// <summary> Gets a value indicating whether an action has any available charges. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> True or false. </returns>
-    public static bool HasCharges(uint actionID) => GetCooldown(actionID).RemainingCharges > 0;
+    public static bool HasCharges(uint actionID) => PredictionContext.Current?.GetRemainingCharges(actionID) > 0 ||
+        PredictionContext.Current == null && GetCooldown(actionID).RemainingCharges > 0;
 
     /// <summary> Get the current number of charges remaining for an action. </summary>
     /// <param name="actionID"> Action ID to check. </param>
     /// <returns> Number of charges. </returns>
-    public static uint GetRemainingCharges(uint actionID) => GetCooldown(actionID).RemainingCharges;
+    public static uint GetRemainingCharges(uint actionID) => PredictionContext.Current?.GetRemainingCharges(actionID) ??
+        GetCooldown(actionID).RemainingCharges;
 
     /// <summary> Get the maximum number of charges for an action. </summary>
     /// <param name="actionID"> Action ID to check. </param>
@@ -89,7 +96,9 @@ internal abstract partial class CustomComboFunctions
 
     private static unsafe RecastDetail* GCD => ActionManager.Instance()->GetRecastGroupDetail(57);
 
-    public static unsafe float GCDTotal => GCD->Total;
+    public static unsafe float GCDTotal => PredictionContext.Current is { } prediction
+        ? prediction.GcdTotal
+        : GCD->Total;
 
     public static unsafe float ElapsedGCD => GCD->Elapsed;
 
@@ -97,6 +106,7 @@ internal abstract partial class CustomComboFunctions
     {
         get
         {
+            if (PredictionContext.Current is { } prediction) return prediction.RemainingGcd;
             var recastGCD = GCD;
             return recastGCD->Total - recastGCD->Elapsed;
         }
