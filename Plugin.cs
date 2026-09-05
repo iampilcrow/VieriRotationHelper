@@ -29,6 +29,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly WindowSystem windows = new("VieriRotationHelper");
     private readonly SettingsWindow settingsWindow;
     private readonly EmbeddedRotationProvider engine;
+    private readonly PositionalGuidance positionalGuidance;
     private readonly WrathSwitch.Plugin? switchRuntime;
     internal OverlayFonts Fonts { get; }
     internal HotkeyResolver Hotkeys { get; }
@@ -46,6 +47,7 @@ public sealed class Plugin : IDalamudPlugin
 
         var wrath = new WrathLiveProvider(PluginInterface);
         engine = new EmbeddedRotationProvider(this, wrath);
+        positionalGuidance = new PositionalGuidance(engine, Configuration);
         var separateSwitchLoaded = PluginInterface.InstalledPlugins.Any(plugin =>
             plugin.InternalName.Equals("WrathSwitch", StringComparison.OrdinalIgnoreCase) && plugin.IsLoaded);
         if (!separateSwitchLoaded)
@@ -82,6 +84,7 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.RemoveHandler(Command);
         windows.RemoveAllWindows();
         switchRuntime?.Dispose();
+        positionalGuidance.Dispose();
         engine.Dispose();
         Fonts.Dispose();
         Configuration.Save();

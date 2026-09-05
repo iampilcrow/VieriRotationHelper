@@ -35,6 +35,11 @@ appear on the bars. Open settings and hover an icon for names/diagnostics.
 
 ## Commands
 
+VieriAvarice 2.2.0.18+ automatically consumes the suite's upcoming positional
+guidance. Rear/flank hints use the integrated Wrath evaluator even with the
+suggestion bars hidden, and prioritize the nearest positional rather than a
+later opposite-side action. No separate Wrath plugin is required.
+
 - `/vrh` opens settings.
 - `/vrh toggle` enables or disables the suggestion bars.
 - `/wrath` and `/wrathcombo` open and control the integrated rotation engine.

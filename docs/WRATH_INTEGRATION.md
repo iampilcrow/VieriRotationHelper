@@ -38,6 +38,26 @@ special pomander buttons are not represented as ordinary spell suggestions.
 
 ## Source pin
 
+### Positional guidance IPC
+
+`VieriRotationHelper.PositionalGuidance.V1` accepts a target GameObjectId (`ulong`)
+and returns `uint[6]`: schema=1, available, action ID, side (0 none/1 rear/2 flank),
+actions ahead, current class/job ID. Guidance uses the integrated evaluator and
+its selected presets/options inside a side-effect-free prediction scope. The
+lookahead scans at most eight actions and less than two preceding GCDs. Nearest
+positional wins; future opposite-side actions do not override it. It works with
+bars disabled and their prediction count set to one. Automatic rotation's ST/AoE
+locks and target-count threshold take priority over the dynamic-bar threshold.
+
+Consumers must treat available + none as authoritative; it includes waiting,
+unsupported jobs, target mismatch and invalid/dead targets. Fall back only when
+the provider is absent/inactive. Responses are computed for the current target
+and cached at most 100ms per job/target. This is short-horizon guidance, not a
+promise that every speculative future action will execute unchanged. Target
+selection, new buffs, movement, and player input can change the next decision.
+Never use this IPC to cast, retarget or override the switch. Live all-job combat
+validation is separate from the executable metadata/lookahead tests.
+
 ### Hosted hotbar lifecycle adaptation
 
 Preserve `ActionReplacer.SetActionReplacing` and its deferred framework refresh

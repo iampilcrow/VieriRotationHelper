@@ -61,3 +61,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Hilda visual contracts failed.' }
 & (Join-Path $PSScriptRoot 'Test-WrathEngine.ps1')
 dotnet run --project (Join-Path $PSScriptRoot '..\tests\WindowHotkeys') -c Release
 if ($LASTEXITCODE -ne 0) { throw 'Window keybind behavior checks failed.' }
+dotnet run --project (Join-Path $PSScriptRoot '..\tests\PositionalGuidance') -c Release
+if ($LASTEXITCODE -ne 0) { throw 'Positional guidance checks failed.' }

@@ -155,6 +155,32 @@ public sealed class ReadOnlyRuntime : IDisposable
         }
     }
 
+    public bool GuidanceUsesAoe(int enemies, bool fallback)
+    {
+        var config = AutoRotation.AutoRotationController.cfg;
+        if (config?.Enabled != true) return fallback;
+        if (AutoRotation.AutoRotationController.LockedST) return false;
+        if (AutoRotation.AutoRotationController.LockedAoE) return true;
+        return config.DPSSettings.DPSAoETargets is { } threshold && enemies >= threshold;
+    }
+
+    public IReadOnlyList<Decision> Preview(uint job, bool aoe, int count)
+    {
+        // Evaluate the lead inside the same side-effect-free scope as lookahead.
+        using var timeline = PredictionContext.Begin();
+        var result = new List<Decision>();
+        var next = Evaluate(job, aoe, null);
+        for (var i = 0; i < Math.Clamp(count, 1, 10) && next.ActionId != 0; i++)
+        {
+            result.Add(next);
+            if (next.ActionId > Combos.PvE.All.Items) break;
+            if (i + 1 >= count) break;
+            timeline.Advance(next.ActionId);
+            next = Evaluate(job, aoe, null);
+        }
+        return result;
+    }
+
     public IReadOnlyList<Decision> Forecast(uint job, bool aoe, string? configurationJson,
         uint leadAction, int totalCount)
     {
