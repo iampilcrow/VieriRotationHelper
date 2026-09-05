@@ -63,6 +63,8 @@ dotnet run --project (Join-Path $PSScriptRoot '..\tests\WindowHotkeys') -c Relea
 if ($LASTEXITCODE -ne 0) { throw 'Window keybind behavior checks failed.' }
 dotnet run --project (Join-Path $PSScriptRoot '..\tests\PositionalGuidance') -c Release
 if ($LASTEXITCODE -ne 0) { throw 'Positional guidance checks failed.' }
+dotnet run --project (Join-Path $PSScriptRoot '..\tests\PredictionTimeline') -c Release
+if ($LASTEXITCODE -ne 0) { throw 'Prediction timeline checks failed.' }
 $coordinator = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\RotationCoordinator.cs') -Raw
 $guidance = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\PositionalGuidance.cs') -Raw
 $bar = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\Windows\RotationBarWindow.cs') -Raw

@@ -47,6 +47,7 @@ public sealed class ReadOnlyRuntime : IDisposable
         {
             plugin = new WrathCombo(pluginInterface);
             NativeAdjust = Service.ActionReplacer.OriginalHook;
+            PredictedComboState.LoadFromGameData();
             saveHostedConfiguration(JsonConvert.SerializeObject(Service.Configuration));
         }
         catch
@@ -176,6 +177,18 @@ public sealed class ReadOnlyRuntime : IDisposable
         {
             timeline.Advance(prior);
             var next = Evaluate(job, aoe, configurationJson);
+            if (timeline.HasCanonicalComboAlternative &&
+                timeline.IsGlobalCooldownAction(next.ActionId) &&
+                !timeline.IsComboContinuation(next.ActionId))
+            {
+                var displayedCombo = timeline.ComboAction;
+                timeline.UseCanonicalComboAction();
+                var canonical = Evaluate(job, aoe, configurationJson);
+                if (canonical.ActionId != 0 && timeline.IsComboContinuation(canonical.ActionId))
+                    next = canonical;
+                else
+                    timeline.RestoreDisplayedComboAction(displayedCombo);
+            }
             if (next.ActionId == 0) break;
             result.Add(next);
             prior = next.ActionId;

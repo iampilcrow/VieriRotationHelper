@@ -38,6 +38,11 @@ Assert-Contract ($runtime -match 'PredictionContext\.Begin\(\)' -and $runtime -m
 Assert-Contract ($provider -match 'runtime\.Forecast' -and $provider -notmatch 'SingleTargetCombo|AoeCombo|Array\.IndexOf') 'Preview cannot fall back to a hard-coded basic combo list'
 Assert-Contract ($prediction -match 'ComboAction' -and $prediction -match 'CooldownRemaining' -and $prediction -match 'RemainingGcd' -and $prediction -match 'Weaves') 'Prediction timeline must project combo, cooldown and weave state'
 Assert-Contract ($prediction -notmatch 'UseAction\(|SetTarget|QueuedActionId\s*=') 'Prediction timeline cannot issue actions, retarget, or alter queues'
+$comboState = Get-Content (Join-Path $root 'Engine/PredictedComboState.cs') -Raw
+$traitMap = Get-Content (Join-Path $root 'Engine/TraitReplacementMap.cs') -Raw
+Assert-Contract ($comboState -match 'GetSubrowExcelSheet<ReplaceAction>' -and $comboState -match 'TraitReplacementMap\.Build') 'Combo normalization must load the game-wide replacement table'
+Assert-Contract ($traitMap -match 'TraitReplacement\s*=\s*3' -and $traitMap -match 'replacement\.Type == TraitReplacement' -and $traitMap -match 'while \(direct\.TryGetValue') 'Only permanent trait replacements may collapse to canonical combo actions'
+Assert-Contract ($runtime -match 'HasCanonicalComboAlternative' -and $runtime -match 'IsComboContinuation' -and $runtime -match 'RestoreDisplayedComboAction') 'Forecast must preserve displayed combo states unless a canonical state produces a verified continuation'
 $project = Get-Content (Join-Path $root 'Engine/VieriWrathEngine.csproj') -Raw
 $wrathPlugin = Get-Content (Join-Path $source 'WrathCombo.cs') -Raw
 $ipcProvider = Get-Content (Join-Path $source 'Services/IPC/Provider.cs') -Raw

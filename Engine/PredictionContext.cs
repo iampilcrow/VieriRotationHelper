@@ -23,6 +23,7 @@ internal sealed class PredictionContext : IDisposable
     private float elapsed;
 
     internal uint ComboAction { get; private set; }
+    internal uint CanonicalComboAction { get; private set; }
     internal float ComboTimer { get; private set; }
     internal float RemainingGcd { get; private set; }
     internal IReadOnlyList<uint> Weaves => weaves;
@@ -33,6 +34,7 @@ internal sealed class PredictionContext : IDisposable
     {
         var manager = ActionManager.Instance();
         ComboAction = manager == null ? 0 : manager->Combo.Action;
+        CanonicalComboAction = PredictedComboState.CanonicalAction(ComboAction);
         ComboTimer = manager == null ? 0 : manager->Combo.Timer;
         var gcd = manager == null ? null : manager->GetRecastGroupDetail(57);
         gcdTotal = gcd == null || gcd->Total <= 0 ? 2.5f : gcd->Total;
@@ -78,10 +80,42 @@ internal sealed class PredictionContext : IDisposable
             // This mirrors Hilda's forward camera: a GCD advances the combo and
             // opens a fresh weave window before the following recommendation.
             ComboAction = action;
+            CanonicalComboAction = PredictedComboState.CanonicalAction(action);
             ComboTimer = 30f;
             RemainingGcd = gcdTotal;
             weaves.Clear();
         }
+    }
+
+    internal bool HasCanonicalComboAlternative =>
+        CanonicalComboAction != 0 && CanonicalComboAction != ComboAction;
+
+    internal void UseCanonicalComboAction() => ComboAction = CanonicalComboAction;
+
+    internal void RestoreDisplayedComboAction(uint action) => ComboAction = action;
+
+    internal bool IsGlobalCooldownAction(uint encodedAction)
+    {
+        var action = encodedAction > Combos.PvE.All.Items && encodedAction < Combos.PvE.All.Pomanders
+            ? encodedAction - Combos.PvE.All.Items
+            : encodedAction;
+        return ActionWatching.ActionSheet.TryGetValue(action, out var row) &&
+               row.ActionCategory.RowId != 4;
+    }
+
+    internal bool IsComboContinuation(uint encodedAction)
+    {
+        var action = encodedAction > Combos.PvE.All.Items && encodedAction < Combos.PvE.All.Pomanders
+            ? encodedAction - Combos.PvE.All.Items
+            : encodedAction;
+        if (!ActionWatching.ActionSheet.TryGetValue(action, out var row) ||
+            row.ActionCategory.RowId == 4)
+            return false;
+
+        var required = row.ActionCombo.RowId;
+        return required != 0 &&
+               (required == ComboAction ||
+                PredictedComboState.CanonicalAction(required) == CanonicalComboAction);
     }
 
     private void Progress(float seconds)

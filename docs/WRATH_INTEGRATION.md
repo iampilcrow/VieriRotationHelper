@@ -65,6 +65,14 @@ and briefly return none while the visible suggestion still carries a positional.
 The shared frame always contains eight total actions; `PredictionCount` limits
 only how many icons are drawn and must never reduce Avarice's lookahead.
 
+The prediction timeline must cope with rotation rules that expect either the
+displayed trait-upgraded action or its canonical combo identifier. Derive the
+alternatives for every job from the game's `ReplaceAction` sheet and collapse
+chained upgrades. Preserve the displayed state first; only use the canonical
+alternative when the resulting action's combo prerequisite proves that it is a
+valid continuation. Do not reverse temporary/stateful replacements such as
+Viper's changing combo steps.
+
 ### Hosted hotbar lifecycle adaptation
 
 Preserve `ActionReplacer.SetActionReplacing` and its deferred framework refresh
