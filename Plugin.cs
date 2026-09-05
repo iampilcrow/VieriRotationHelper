@@ -47,14 +47,14 @@ public sealed class Plugin : IDalamudPlugin
 
         var wrath = new WrathLiveProvider(PluginInterface);
         engine = new EmbeddedRotationProvider(this, wrath);
-        positionalGuidance = new PositionalGuidance(engine, Configuration);
+        var coordinator = new RotationCoordinator(ObjectTable, TargetManager, wrath, engine,
+            new TargetAnalysis(ObjectTable, TargetManager, DataManager), Configuration);
+        positionalGuidance = new PositionalGuidance(engine, coordinator);
         var separateSwitchLoaded = PluginInterface.InstalledPlugins.Any(plugin =>
             plugin.InternalName.Equals("WrathSwitch", StringComparison.OrdinalIgnoreCase) && plugin.IsLoaded);
         if (!separateSwitchLoaded)
             switchRuntime = new WrathSwitch.Plugin(PluginInterface, CommandManager, ClientState,
                 KeyState, GameGui, ChatGui, Log, Configuration.Switch, Save, true);
-        var coordinator = new RotationCoordinator(ObjectTable, wrath, engine,
-            new TargetAnalysis(ObjectTable, TargetManager, DataManager), Configuration);
         var display = new ActionDisplay(DataManager);
 
         windows.AddWindow(new RotationBarWindow(this, coordinator, display, RotationMode.SingleTarget));

@@ -66,8 +66,6 @@ internal sealed class EmbeddedRotationProvider : IDisposable
 
     public void Dispose() => runtime?.Dispose();
 
-    internal uint[] Preview(uint job, bool aoe) =>
-        runtime?.Preview(job, aoe, 8).Select(x => x.ActionId).ToArray() ?? [];
     internal bool GuidanceUsesAoe(int enemies, bool fallback) => runtime?.GuidanceUsesAoe(enemies, fallback) ?? fallback;
 
     internal void OpenSettings()

@@ -63,3 +63,14 @@ dotnet run --project (Join-Path $PSScriptRoot '..\tests\WindowHotkeys') -c Relea
 if ($LASTEXITCODE -ne 0) { throw 'Window keybind behavior checks failed.' }
 dotnet run --project (Join-Path $PSScriptRoot '..\tests\PositionalGuidance') -c Release
 if ($LASTEXITCODE -ne 0) { throw 'Positional guidance checks failed.' }
+$coordinator = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\RotationCoordinator.cs') -Raw
+$guidance = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\PositionalGuidance.cs') -Raw
+$bar = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\Windows\RotationBarWindow.cs') -Raw
+if ($coordinator -notmatch 'FrameCounter' -or $coordinator -notmatch 'frameCache' -or
+    $guidance -notmatch 'coordinator\.EvaluateGuidance\(\)' -or
+    $guidance -match 'engine\.Preview' -or
+    $bar -notmatch 'coordinator\.Evaluate\(mode\)' -or
+    $coordinator -notmatch 'embedded\.Forecast\(anchor, effectiveMode, lead\.ActionId, 8\)') {
+    throw 'Visible suggestions and Avarice guidance must share one same-frame Wrath sequence independent of the display count.'
+}
+Write-Host 'Same-frame positional parity contract passed: bars and Avarice share one Wrath sequence.'

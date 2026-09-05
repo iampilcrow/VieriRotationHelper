@@ -58,6 +58,13 @@ selection, new buffs, movement, and player input can change the next decision.
 Never use this IPC to cast, retarget or override the switch. Live all-job combat
 validation is separate from the executable metadata/lookahead tests.
 
+The visible bar and positional IPC must consume the same `RotationFrame` cached
+by effective ST/AoE mode and native framework frame. Do not independently call
+the evaluator from the IPC: doing so can observe a different GCD/ability instant
+and briefly return none while the visible suggestion still carries a positional.
+The shared frame always contains eight total actions; `PredictionCount` limits
+only how many icons are drawn and must never reduce Avarice's lookahead.
+
 ### Hosted hotbar lifecycle adaptation
 
 Preserve `ActionReplacer.SetActionReplacing` and its deferred framework refresh

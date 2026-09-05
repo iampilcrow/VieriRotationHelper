@@ -9,18 +9,16 @@ internal sealed class PositionalGuidance : IDisposable
 {
     private readonly ICallGateProvider<ulong, uint[]> ipc;
     private readonly EmbeddedRotationProvider engine;
-    private readonly TargetAnalysis targets;
-    private readonly Configuration configuration;
+    private readonly RotationCoordinator coordinator;
     private long updated;
     private ulong targetId;
     private uint jobId;
     private uint[] snapshot = [1, 0, 0, 0, 0, 0];
 
-    internal PositionalGuidance(EmbeddedRotationProvider engine, Configuration configuration)
+    internal PositionalGuidance(EmbeddedRotationProvider engine, RotationCoordinator coordinator)
     {
         this.engine = engine;
-        this.configuration = configuration;
-        targets = new TargetAnalysis(Plugin.ObjectTable, Plugin.TargetManager, Plugin.DataManager);
+        this.coordinator = coordinator;
         ipc = Plugin.PluginInterface.GetIpcProvider<ulong, uint[]>("VieriRotationHelper.PositionalGuidance.V1");
         ipc.RegisterFunc(Get);
     }
@@ -44,9 +42,9 @@ internal sealed class PositionalGuidance : IDisposable
         snapshot = [1, 1, 0, 0, 0, jobId];
         try
         {
-            var enemies = targets.Snapshot(anchor.AoeAction).EnemyCount;
-            var aoe = engine.GuidanceUsesAoe(enemies, enemies >= Math.Clamp(configuration.DynamicAoeTargetCount, 2, 8));
-            var actions = engine.Preview(anchor.JobId, aoe);
+            var frame = coordinator.EvaluateGuidance();
+            var actions = frame.Lead == null ? [] : new[] { frame.Lead.ActionId }
+                .Concat(frame.Forecast.Select(x => x.ActionId)).ToArray();
             var next = PositionalLookahead.Select(actions, action =>
                 Plugin.DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>().TryGetRow(action, out var row) && row.ActionCategory.RowId == 4);
             snapshot = [1, 1, next.Action, next.Side, next.Steps, jobId];

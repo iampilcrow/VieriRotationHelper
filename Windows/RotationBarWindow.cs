@@ -51,18 +51,19 @@ internal sealed class RotationBarWindow : Window
         if (frame.Lead == null)
             return;
         var config = plugin.Configuration;
+        var forecast = frame.Forecast.Take(Math.Max(0, Math.Clamp(config.PredictionCount, 1, 10) - 1)).ToArray();
         var origin = ImGui.GetCursorScreenPos();
         var main = Math.Clamp(config.IconSize, 32f, 96f);
         var secondary = main * Math.Clamp(config.FutureIconScale, .45f, 1f);
-        var count = 1 + frame.Forecast.Count;
+        var count = 1 + forecast.Length;
         var end = HildaVisualStyle.Position(count - 1, main, secondary, config.IconSpacing, config.Horizontal);
         var lastSize = count == 1 ? main : secondary;
         var bounds = end + new Vector2(lastSize + 20f, lastSize + 24f);
         // Exactly one layout item: overlays can never move the next icon.
         ImGui.Dummy(bounds);
         DrawAction(frame.Lead, frame, origin + HildaVisualStyle.Position(0, main, secondary, config.IconSpacing, config.Horizontal), main, main / 65f, true);
-        for (var i = 0; i < frame.Forecast.Count; i++)
-            DrawAction(frame.Forecast[i], frame, origin + HildaVisualStyle.Position(i + 1, main, secondary, config.IconSpacing, config.Horizontal), secondary, main / 65f, false);
+        for (var i = 0; i < forecast.Length; i++)
+            DrawAction(forecast[i], frame, origin + HildaVisualStyle.Position(i + 1, main, secondary, config.IconSpacing, config.Horizontal), secondary, main / 65f, false);
     }
 
     private unsafe void DrawAction(RotationSuggestion suggestion, RotationFrame frame, Vector2 pos, float size, float scale, bool lead)
