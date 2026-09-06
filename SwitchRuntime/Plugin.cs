@@ -43,17 +43,18 @@ public sealed class Plugin : IDalamudPlugin
     private long nextStatePoll;
     private long saveAt;
     private readonly bool embedded;
+    private readonly Func<bool>? gameplayOverlayReady;
     internal bool IsEmbedded => embedded;
 
     public Plugin() : this(PluginInterface, CommandManager, ClientState, KeyState, GameGui,
-        ChatGui, Log, null, null, false)
+        ChatGui, Log, null, null, false, null)
     {
     }
 
     public Plugin(IDalamudPluginInterface pluginInterface, ICommandManager commandManager,
         IClientState clientState, IKeyState keyState, IGameGui gameGui, IChatGui chatGui,
         IPluginLog log, Configuration? embeddedConfiguration, Action? embeddedSave,
-        bool embedded)
+        bool embedded, Func<bool>? gameplayOverlayReady)
     {
         PluginInterface = pluginInterface;
         CommandManager = commandManager;
@@ -63,6 +64,7 @@ public sealed class Plugin : IDalamudPlugin
         ChatGui = chatGui;
         Log = log;
         this.embedded = embedded;
+        this.gameplayOverlayReady = gameplayOverlayReady;
 
         Configuration = embeddedConfiguration ?? PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         if (embeddedConfiguration != null && embeddedSave != null)
@@ -243,7 +245,8 @@ public sealed class Plugin : IDalamudPlugin
         combatOnly.Update(Configuration.CombatOnlyRotation);
 
         rotationWindow.IsOpen = Configuration.ShowWindow;
-        if (!Configuration.HideWhenGameUiHidden || !GameGui.GameUiHidden)
+        if ((gameplayOverlayReady?.Invoke() ?? true) &&
+            (!Configuration.HideWhenGameUiHidden || !GameGui.GameUiHidden))
             windowSystem.Draw();
 
         if (saveAt != 0 && Environment.TickCount64 >= saveAt)

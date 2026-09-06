@@ -31,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly EmbeddedRotationProvider engine;
     private readonly PositionalGuidance positionalGuidance;
     private readonly WrathSwitch.Plugin? switchRuntime;
+    private readonly GameplayOverlayGate gameplayOverlayGate = new();
     internal OverlayFonts Fonts { get; }
     internal HotkeyResolver Hotkeys { get; }
     internal WindowHotkeyController WindowHotkey { get; }
@@ -54,7 +55,8 @@ public sealed class Plugin : IDalamudPlugin
             plugin.InternalName.Equals("WrathSwitch", StringComparison.OrdinalIgnoreCase) && plugin.IsLoaded);
         if (!separateSwitchLoaded)
             switchRuntime = new WrathSwitch.Plugin(PluginInterface, CommandManager, ClientState,
-                KeyState, GameGui, ChatGui, Log, Configuration.Switch, Save, true);
+                KeyState, GameGui, ChatGui, Log, Configuration.Switch, Save, true,
+                () => GameplayOverlaysReady);
         var display = new ActionDisplay(DataManager);
 
         windows.AddWindow(new RotationBarWindow(this, coordinator, display, RotationMode.SingleTarget));
@@ -92,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
 
     internal bool ShouldShow(RotationMode mode)
     {
-        if (!Configuration.Enabled || !ClientState.IsLoggedIn)
+        if (!Configuration.Enabled || !GameplayOverlaysReady)
             return false;
         if (mode == RotationMode.SingleTarget && !Configuration.ShowSingleTarget)
             return false;
@@ -106,6 +108,14 @@ public sealed class Plugin : IDalamudPlugin
             return false;
         return true;
     }
+
+    internal bool GameplayOverlaysReady => gameplayOverlayGate.Evaluate(
+        ClientState.IsLoggedIn,
+        ObjectTable.LocalPlayer is { IsTargetable: true },
+        ClientState.TerritoryType != 0,
+        Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas] ||
+        Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.BetweenAreas51],
+        Environment.TickCount64);
 
     internal void Save() => Configuration.Save();
     private void Draw()

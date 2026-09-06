@@ -27,6 +27,15 @@ foreach (var (first, second, third) in new[] {
 Check(SuggestionActionId.Item(1044110) == SuggestionActionId.Item(44110), "HQ item hotkeys match the base consumable suggestion");
 Check(SuggestionActionId.ItemRow(2044110) == 44110, "Synthetic IDs must be decoded before native item queries");
 Check(!SuggestionActionId.IsItem(2000000) && !SuggestionActionId.IsItem(3000000), "Sentinels are not real consumables");
+var overlayGate = new GameplayOverlayGate();
+Check(!overlayGate.Evaluate(false, false, false, false, 0), "Overlays stay hidden before login");
+Check(!overlayGate.Evaluate(true, true, true, true, 10), "Overlays stay hidden between areas");
+Check(!overlayGate.Evaluate(true, true, true, false, 20), "Overlays wait for the loaded world to settle");
+Check(!overlayGate.Evaluate(true, true, true, false, 769), "Overlays do not appear early during the settle period");
+Check(overlayGate.Evaluate(true, true, true, false, 770), "Overlays appear after the loaded world is stable");
+Check(!overlayGate.Evaluate(true, true, true, true, 800), "A new loading transition immediately hides overlays");
+Check(!overlayGate.Evaluate(true, true, true, false, 900), "A new area starts a fresh settle period");
+Check(overlayGate.Evaluate(true, true, true, false, 1650), "Overlays return after the new area is stable");
 Check(HildaVisualStyle.Position(0, 65, 50, 3, true) == new Vector2(20, 20), "Hilda lead origin");
 Check(HildaVisualStyle.Position(1, 65, 50, 3, true) == new Vector2(91, 27.5f), "Hilda second icon and vertical centering");
 Check(HildaVisualStyle.Position(2, 65, 50, 3, true) == new Vector2(147, 27.5f), "Hilda third icon spacing");

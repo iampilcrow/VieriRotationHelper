@@ -11,5 +11,6 @@
     <Compile Include="../../HildaHotkeyFamilies.cs" Link="HildaHotkeyFamilies.cs" />
     <Compile Include="../../HotbarKeySelection.cs" Link="HotbarKeySelection.cs" />
     <Compile Include="../../SuggestionActionId.cs" Link="SuggestionActionId.cs" />
+    <Compile Include="../../GameplayOverlayGate.cs" Link="GameplayOverlayGate.cs" />
   </ItemGroup>
 </Project>
