@@ -1,5 +1,6 @@
 #region Dependencies
 using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.JobGauge.Enums;
 using System;
 using System.Collections.Generic;
 using WrathCombo.Combos.PvE.ALL;
@@ -14,7 +15,18 @@ namespace WrathCombo.Combos.PvE;
 internal partial class PCT
 {
     #region Variables
-    internal static PCTGauge gauge = GetJobGauge<PCTGauge>();
+    internal static PredictedPctGauge gauge => new(GetJobGauge<PCTGauge>());
+    internal readonly record struct PredictedPctGauge(PCTGauge Live)
+    {
+        internal byte Paint => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Paint) ?? Live.Paint);
+        internal byte PalleteGauge => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.PalleteGauge) ?? Live.PalleteGauge);
+        internal bool MooglePortraitReady => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Live.MooglePortraitReady) ?? Live.MooglePortraitReady;
+        internal bool MadeenPortraitReady => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag2, Live.MadeenPortraitReady) ?? Live.MadeenPortraitReady;
+        internal CanvasFlags CanvasFlags => (CanvasFlags)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Extra, (int)Live.CanvasFlags) ?? (int)Live.CanvasFlags);
+        internal bool CreatureMotifDrawn => CanvasFlags.HasFlag(CanvasFlags.Pom) || CanvasFlags.HasFlag(CanvasFlags.Wing) || CanvasFlags.HasFlag(CanvasFlags.Claw) || CanvasFlags.HasFlag(CanvasFlags.Maw);
+        internal bool WeaponMotifDrawn => CanvasFlags.HasFlag(CanvasFlags.Weapon);
+        internal bool LandscapeMotifDrawn => CanvasFlags.HasFlag(CanvasFlags.Landscape);
+    }
     internal static bool HasPaint => gauge.Paint > 0;
     internal static bool CreatureMotifReady => !gauge.CreatureMotifDrawn && ActionLearned(CreatureMotif) && !HasStatusEffect(Buffs.StarryMuse);
     internal static bool WeaponMotifReady => !gauge.WeaponMotifDrawn && ActionLearned(WeaponMotif) && !HasStatusEffect(Buffs.StarryMuse) && !HasStatusEffect(Buffs.HammerTime);

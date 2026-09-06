@@ -204,7 +204,7 @@ internal partial class PCT : Caster
         protected internal override Preset Preset => Preset.CombinedMotifs;
         protected override uint Invoke(uint actionID)
         {
-            PCTGauge gauge = GetJobGauge<PCTGauge>();
+            var gauge = PCT.gauge;
 
             if (actionID == CreatureMotif)
             {

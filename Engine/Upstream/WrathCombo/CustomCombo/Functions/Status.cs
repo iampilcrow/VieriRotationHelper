@@ -30,6 +30,11 @@ internal abstract partial class CustomComboFunctions
         // Default to LocalPlayer if no target/bad target
         target ??= LocalPlayer;
 
+        if (PredictionContext.Current is { } prediction && prediction.OwnsStatusShadow(target.GameObjectId))
+            return prediction.TryGetStatusSnapshot(target.GameObjectId, statusId, anyOwner, out var predicted)
+                ? new PredictedStatus(predicted)
+                : null;
+
         // Use LocalPlayer's GameObjectId if playerOwned, null otherwise
         ulong? sourceId = !anyOwner ? LocalPlayer.GameObjectId : null;
 
@@ -48,9 +53,8 @@ internal abstract partial class CustomComboFunctions
     {
         // Default to LocalPlayer if no target provided
         target ??= LocalPlayer;
-        if (target.GameObjectId == LocalPlayer.GameObjectId &&
-            PredictionContext.Current?.TryGetPlayerStatus(statusId, out var predicted) == true)
-            return predicted;
+        if (PredictionContext.Current is { } prediction && prediction.OwnsStatusShadow(target.GameObjectId))
+            return prediction.TryGetStatusSnapshot(target.GameObjectId, statusId, anyOwner, out _);
         return GetStatusEffect(statusId, target, anyOwner) is not null;
     }
 
@@ -91,6 +95,11 @@ internal abstract partial class CustomComboFunctions
 
         ulong? sourceId = !anyOwner ? LocalPlayer.GameObjectId : null;
         var statusIdSet = new HashSet<uint>(statusIds.Select(s => (uint)s));
+
+        if (PredictionContext.Current is { } prediction && prediction.OwnsStatusShadow(target.GameObjectId))
+            return matchAll
+                ? statusIdSet.All(statusId => prediction.TryGetStatusSnapshot(target.GameObjectId, statusId, anyOwner, out _))
+                : statusIdSet.Any(statusId => prediction.TryGetStatusSnapshot(target.GameObjectId, statusId, anyOwner, out _));
 
         if (matchAll)
         {
@@ -167,7 +176,10 @@ internal abstract partial class CustomComboFunctions
     /// <returns>Integer representing status effect stack count</returns>
     [Obsolete("Use the IBattleChara & IStatus? extensions .Status(id, anyowner).Stacks")]
     public static ushort GetStatusEffectStacks(uint effectId, IGameObject? target = null, bool anyOwner = false) =>
-        GetStatusEffectStacks(GetStatusEffect(effectId, target, anyOwner));
+        (target == null || target.GameObjectId == LocalPlayer.GameObjectId) &&
+        PredictionContext.Current?.TryGetPlayerStatusSnapshot(effectId, out var predicted) == true
+            ? predicted.Stacks
+            : GetStatusEffectStacks(GetStatusEffect(effectId, target, anyOwner));
 
 
     [Obsolete("Use the IBattleChara extension .HasDamageDown")]

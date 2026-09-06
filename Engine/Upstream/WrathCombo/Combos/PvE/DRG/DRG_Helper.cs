@@ -586,11 +586,11 @@ internal partial class DRG
 
     private static DRGGauge Gauge => GetJobGauge<DRGGauge>();
 
-    private static bool IsLoTDActive => Gauge.IsLOTDActive;
+    private static bool IsLoTDActive => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Gauge.IsLOTDActive) ?? Gauge.IsLOTDActive;
 
-    private static short LoTDTimer => Gauge.LOTDTimer;
+    private static short LoTDTimer => (short)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Gauge.LOTDTimer) ?? Gauge.LOTDTimer);
 
-    private static byte FirstmindsFocus => Gauge.FirstmindsFocusCount;
+    private static byte FirstmindsFocus => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.FirstmindsFocusCount) ?? Gauge.FirstmindsFocusCount);
 
     private static bool IsLoTDTimerActive => LoTDTimer > 0;
 

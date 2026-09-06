@@ -286,7 +286,7 @@ internal partial class DRK
                 (flags.HasFlag(Combo.Simple) ||
                  IsEnabled(Preset.DRK_ST_CD_Spit)) &&
                 ActionReady(CarveAndSpit) &&
-                (int)LocalPlayer.CurrentMp <= 9400 &&
+                (int)CurrentMp <= 9400 &&
                 (!ActionLearned(LivingShadow) ||
                  GetCooldownRemainingTime(LivingShadow) > 20) &&
                 (!ActionLearned(BloodWeapon) ||
@@ -867,7 +867,7 @@ internal partial class DRK
             // Bail if mana spending is not available yet
             if (!ActionLearned(FloodOfDarkness)) return false;
 
-            var mana = (int)LocalPlayer.CurrentMp;
+            var mana = (int)CurrentMp;
             var manaPooling =
                 ContentCheck.IsInConfiguredContent(
                     DRK_ST_ManaSpenderPoolingDifficulty,
@@ -1059,7 +1059,7 @@ internal partial class DRK
                     (!TargetIsFriendly() &&
                      HasStatusEffect(Buffs.BlackestNightShield,
                          anyOwner: true))) &&
-                  LocalPlayer.CurrentMp > 3000),
+                  CurrentMp > 3000),
         (Oblation, Preset.DRK_Mit_Oblation,
             () => !((TargetIsFriendly() &&
                      HasStatusEffect(Buffs.Oblation,

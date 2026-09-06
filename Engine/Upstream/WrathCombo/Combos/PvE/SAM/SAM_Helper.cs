@@ -796,17 +796,17 @@ internal partial class SAM
     private static bool HasEnhancedSenei =>
         TraitLevelChecked(Traits.EnhancedHissatsu);
 
-    private static bool HasGetsu => Gauge.HasGetsu;
+    private static bool HasGetsu => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Gauge.HasGetsu) ?? Gauge.HasGetsu;
 
-    private static bool HasSetsu => Gauge.HasSetsu;
+    private static bool HasSetsu => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag2, Gauge.HasSetsu) ?? Gauge.HasSetsu;
 
-    private static bool HasKa => Gauge.HasKa;
+    private static bool HasKa => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Extra, Gauge.HasKa) ?? Gauge.HasKa;
 
-    private static byte Kenki => Gauge.Kenki;
+    private static byte Kenki => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.Kenki) ?? Gauge.Kenki);
 
-    private static byte MeditationStacks => Gauge.MeditationStacks;
+    private static byte MeditationStacks => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.MeditationStacks) ?? Gauge.MeditationStacks);
 
-    private static Kaeshi Kaeshi => Gauge.Kaeshi;
+    private static Kaeshi Kaeshi => (Kaeshi)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Extra2, (int)Gauge.Kaeshi) ?? (int)Gauge.Kaeshi);
 
     private static bool IsNamikiriReady => Kaeshi is Kaeshi.Namikiri;
 

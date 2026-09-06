@@ -17,7 +17,7 @@ internal partial class WAR : Tank
 {
     #region Variables
     internal static WARGauge Gauge = GetJobGauge<WARGauge>(); //WAR gauge
-    internal static int BeastGauge => Gauge.BeastGauge;
+    internal static int BeastGauge => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.BeastGauge) ?? Gauge.BeastGauge;
     internal static (float Cooldown, float Status, int Stacks) IR => (GetCooldownRemainingTime(OriginalHook(Berserk)), GetStatusEffectRemainingTime(Buffs.InnerReleaseBuff), GetStatusEffectStacks(Buffs.InnerReleaseStacks));
     internal static (float Status, int Stacks) BF => (GetStatusEffectRemainingTime(Buffs.BurgeoningFury), GetStatusEffectStacks(Buffs.BurgeoningFury));
     internal static (bool Status, bool Stacks) HasIR => (IR.Status > 0, IR.Stacks > 0 || HasStatusEffect(Buffs.InnerReleaseStacks));

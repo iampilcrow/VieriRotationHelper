@@ -16,7 +16,12 @@ namespace WrathCombo.Combos.PvE;
 
 internal partial class NIN
 {
-    static NINGauge gauge = GetJobGauge<NINGauge>();
+    static PredictedNinGauge gauge => new(GetJobGauge<NINGauge>());
+    readonly record struct PredictedNinGauge(NINGauge Live)
+    {
+        internal byte Ninki => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Ninki) ?? Live.Ninki);
+        internal byte Kazematoi => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.Kazematoi) ?? Live.Kazematoi);
+    }
     public static FrozenSet<uint> MudraSigns = [Ten, Chi, Jin, TenCombo, ChiCombo, JinCombo];
     public static FrozenSet<uint> NormalJutsus = [FumaShuriken, Raiton, Katon, Hyoton, Doton, Suiton, Huton, HyoshoRanryu, GokaMekkyaku, Rabbit];
     public static FrozenSet<uint> TCJJutsus = [TCJFumaShurikenChi, TCJFumaShurikenJin, TCJFumaShurikenTen, TCJRaiton, TCJKaton, TCJHyoton, TCJHuton, TCJSuiton, TCJDoton];

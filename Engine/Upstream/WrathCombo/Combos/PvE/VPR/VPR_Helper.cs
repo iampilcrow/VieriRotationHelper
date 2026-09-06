@@ -715,11 +715,11 @@ internal partial class VPR
 
     private static VPRGauge Gauge => GetJobGauge<VPRGauge>();
 
-    private static byte RattlingCoilStacks => Gauge.RattlingCoilStacks;
+    private static byte RattlingCoilStacks => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.RattlingCoilStacks) ?? Gauge.RattlingCoilStacks);
 
-    private static byte SerpentOffering => Gauge.SerpentOffering;
+    private static byte SerpentOffering => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.SerpentOffering) ?? Gauge.SerpentOffering);
 
-    private static DreadCombo DreadCombo => Gauge.DreadCombo;
+    private static DreadCombo DreadCombo => (DreadCombo)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Step, (int)Gauge.DreadCombo) ?? (int)Gauge.DreadCombo);
 
     private static bool UsedVicewinder => DreadCombo is DreadCombo.Dreadwinder;
 
@@ -733,7 +733,7 @@ internal partial class VPR
 
     private static bool UsedHuntersDen => DreadCombo is DreadCombo.HuntersDen;
 
-    private static SerpentCombo SerpentCombo => Gauge.SerpentCombo;
+    private static SerpentCombo SerpentCombo => (SerpentCombo)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Step2, (int)Gauge.SerpentCombo) ?? (int)Gauge.SerpentCombo);
 
     private static bool IsLegacyWeaveReady =>
         HasStatusEffect(Buffs.Reawakened) &&
@@ -742,9 +742,9 @@ internal partial class VPR
          SerpentCombo.HasFlag(SerpentCombo.ThirdLegacy) ||
          SerpentCombo.HasFlag(SerpentCombo.FourthLegacy));
 
-    private static bool IsDeathRattleWeave => Gauge.SerpentCombo is SerpentCombo.DeathRattle;
+    private static bool IsDeathRattleWeave => SerpentCombo is SerpentCombo.DeathRattle;
 
-    private static bool IsLastLashWeave => Gauge.SerpentCombo is SerpentCombo.LastLash;
+    private static bool IsLastLashWeave => SerpentCombo is SerpentCombo.LastLash;
 
     #endregion
 

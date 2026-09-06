@@ -16,6 +16,7 @@
     "Isolated engine assembly names with exact WrathCombo IPC compatibility",
     "Embedded VieriWrathSwitch with exact legacy command and BeginAutomation compatibility",
     "Hilda-style isolated forward timeline for multi-action Wrath forecasts",
-    "Deterministic Red Mage Dualcast, proc, mana, and mana-stack shadow state"
+    "All-job deterministic gauge, MP, player-status, target-debuff, stack, phase, and transformation shadow state",
+    "Random outcomes are never invented; live state restarts the forecast when the game resolves them"
   ]
 }

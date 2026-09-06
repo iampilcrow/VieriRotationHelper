@@ -36,7 +36,17 @@ internal partial class AST
         { Combust3, Debuffs.Combust3 }
     }.ToFrozenDictionary();
 
-    public static ASTGauge Gauge => GetJobGauge<ASTGauge>();
+    public static PredictedAstGauge Gauge => new(GetJobGauge<ASTGauge>());
+    public readonly record struct PredictedAstGauge(ASTGauge Live)
+    {
+        public CardType[] DrawnCards =>
+        [
+            (CardType)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, (int)Live.DrawnCards[0]) ?? (int)Live.DrawnCards[0]),
+            (CardType)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, (int)Live.DrawnCards[1]) ?? (int)Live.DrawnCards[1]),
+            (CardType)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Tertiary, (int)Live.DrawnCards[2]) ?? (int)Live.DrawnCards[2]),
+        ];
+        public CardType DrawnCrownCard => (CardType)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Quaternary, (int)Live.DrawnCrownCard) ?? (int)Live.DrawnCrownCard);
+    }
     public static CardType DrawnDPSCard => Gauge.DrawnCards[0];
     internal static bool HasNoCards => Gauge.DrawnCards.All(x => x is CardType.None);
     internal static bool HasNoDPSCard => DrawnDPSCard == CardType.None;

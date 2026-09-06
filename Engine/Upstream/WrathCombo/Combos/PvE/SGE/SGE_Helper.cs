@@ -62,9 +62,9 @@ internal partial class SGE
 
     private static SGEGauge Gauge => GetJobGauge<SGEGauge>();
 
-    private static byte Addersgall => Gauge.Addersgall;
+    private static byte Addersgall => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.Addersgall) ?? Gauge.Addersgall);
 
-    private static byte Addersting => Gauge.Addersting;
+    private static byte Addersting => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.Addersting) ?? Gauge.Addersting);
 
     #endregion
 

@@ -158,7 +158,19 @@ internal partial class SMN
         AllRuinsList = [Ruin, Ruin2, Ruin3],
         NotRuin3List = [Ruin, Ruin2];
 
-    internal static SMNGauge Gauge => GetJobGauge<SMNGauge>();
+    internal static PredictedSmnGauge Gauge => new(GetJobGauge<SMNGauge>());
+    internal readonly record struct PredictedSmnGauge(SMNGauge Live)
+    {
+        internal SummonAttunement AttunementType => (SummonAttunement)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, (int)Live.AttunementType) ?? (int)Live.AttunementType);
+        internal byte AttunementCount => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.AttunementCount) ?? Live.AttunementCount);
+        internal ushort AttunementTimerRemaining => (ushort)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Live.AttunementTimerRemaining) ?? Live.AttunementTimerRemaining);
+        internal ushort SummonTimerRemaining => (ushort)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer2, Live.SummonTimerRemaining) ?? Live.SummonTimerRemaining);
+        internal bool IsIfritReady => PredictionContext.Current?.Gauge("ifrit", Live.IsIfritReady) ?? Live.IsIfritReady;
+        internal bool IsTitanReady => PredictionContext.Current?.Gauge("titan", Live.IsTitanReady) ?? Live.IsTitanReady;
+        internal bool IsGarudaReady => PredictionContext.Current?.Gauge("garuda", Live.IsGarudaReady) ?? Live.IsGarudaReady;
+        internal AetherFlags AetherFlags => (AetherFlags)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Extra, (int)Live.AetherFlags) ?? (int)Live.AetherFlags);
+        internal bool HasAetherflowStacks => (PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.AetherflowStacks) ?? Live.AetherflowStacks) > 0;
+    }
 
     internal static bool IsIfritAttuned => (byte)Gauge.AttunementType is 1;
     internal static bool IsTitanAttuned => (byte)Gauge.AttunementType is 2;

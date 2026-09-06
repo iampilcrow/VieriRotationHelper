@@ -40,7 +40,14 @@ internal partial class DRK
     /// <summary>
     ///     DRK's job gauge.
     /// </summary>
-    internal static DRKGauge Gauge => GetJobGauge<DRKGauge>();
+    internal static PredictedDrkGauge Gauge => new(GetJobGauge<DRKGauge>());
+    internal readonly record struct PredictedDrkGauge(DRKGauge Live)
+    {
+        internal byte Blood => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Blood) ?? Live.Blood);
+        internal ushort DarksideTimeRemaining => (ushort)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Live.DarksideTimeRemaining) ?? Live.DarksideTimeRemaining);
+        internal ushort ShadowTimeRemaining => (ushort)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer2, Live.ShadowTimeRemaining) ?? Live.ShadowTimeRemaining);
+        internal bool HasDarkArts => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Live.HasDarkArts) ?? Live.HasDarkArts;
+    }
 
     /// <summary>
     ///     DRK's GCD, truncated to two decimal places.
@@ -233,7 +240,7 @@ internal partial class DRK
         (uint currentAction, ref uint action, uint[] castLocations)
     {
         if (castLocations.Contains(currentAction) &&
-            (Gauge.HasDarkArts || LocalPlayer.CurrentMp > 3000) &&
+            (Gauge.HasDarkArts || CurrentMp > 3000) &&
             CanWeave())
             action = OriginalHook(EdgeOfDarkness);
     }
@@ -319,7 +326,7 @@ internal partial class DRK
         internal override bool IncludePot => DRK_Opener_Potion;
 
         public override bool HasCooldowns() =>
-            LocalPlayer.CurrentMp > 7000 && IsOffCooldown(LivingShadow) &&
+            CurrentMp > 7000 && IsOffCooldown(LivingShadow) &&
             IsOffCooldown(Delirium) && IsOffCooldown(CarveAndSpit) &&
             IsOffCooldown(SaltedEarth) &&
             GetRemainingCharges(Shadowbringer) >= 2 &&
@@ -410,7 +417,7 @@ internal partial class DRK
 
         public override bool HasCooldowns() =>
             CountdownActive &&
-            LocalPlayer.CurrentMp > 7000 && IsOffCooldown(LivingShadow) &&
+            CurrentMp > 7000 && IsOffCooldown(LivingShadow) &&
             IsOffCooldown(Delirium) && IsOffCooldown(CarveAndSpit) &&
             IsOffCooldown(SaltedEarth) &&
             GetRemainingCharges(Shadowbringer) >= 2 &&

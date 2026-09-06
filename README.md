@@ -22,9 +22,10 @@ appear on the bars. Open settings and hover an icon for names/diagnostics.
   advanced job settings are provided directly by VieriRotationHelper. The
   separate Wrath Combo plugin is not required.
 - Forecast icons use a thread-local shadow combat timeline. It advances shared
-  combo/cooldown/action history for every job and Red Mage's Dualcast, procs,
-  black/white mana, and mana stacks, so all three bars show the next decisions
-  instead of repeating the current spell against stale state. Game actions,
+  combo/cooldown/action history plus every standard job's deterministic gauges,
+  player buffs/procs/stacks, target debuffs, dance/transformation steps, and
+  resource spends/gains. All three bars therefore re-run Wrath against the
+  projected result of each prior icon instead of stale live state. Game actions,
   movement, targeting, retargeting, configuration writes, and item use are
   suppressed while that forecast is calculated, without disabling those
   features for the live rotation engine.

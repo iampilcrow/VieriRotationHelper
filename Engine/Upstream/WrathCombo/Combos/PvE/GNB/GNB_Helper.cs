@@ -17,8 +17,8 @@ namespace WrathCombo.Combos.PvE;
 internal partial class GNB : Tank
 {
     #region Variables
-    private static byte Ammo => GetJobGauge<GNBGauge>().Ammo; //cartridge count
-    private static byte GunStep => GetJobGauge<GNBGauge>().AmmoComboStep; //GF & Reign combo steps
+    private static byte Ammo { get { var live = GetJobGauge<GNBGauge>().Ammo; return (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, live) ?? live); } } //cartridge count
+    private static byte GunStep { get { var live = GetJobGauge<GNBGauge>().AmmoComboStep; return (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Step, live) ?? live); } } //GF & Reign combo steps
     private static float NMcd => GetCooldownRemainingTime(NoMercy); //No Mercy cooldown
     private static bool HasNM => NMcd is > 39.5f and <= 60; //under No Mercy buff, using its cooldown instead of buff timer (for snappier reaction) with a small 0.4s leeway
     private static float GCDLength => ActionManager.GetAdjustedRecastTime(ActionType.Action, KeenEdge) / 1000f; //current GCD length in seconds

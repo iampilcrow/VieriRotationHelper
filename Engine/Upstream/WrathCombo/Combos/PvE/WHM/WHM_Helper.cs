@@ -179,7 +179,7 @@ internal partial class WHM
                 enabled = IsEnabled(Preset.WHM_AoEHeals_Cure3) &&
                           !IsMoving() &&
                           NumberOfAlliesInRange(Cure3, OptionalTarget) >= WHM_AoEHeals_Cure3Allies &&
-                          (LocalPlayer.CurrentMp >= WHM_AoEHeals_Cure3MP ||
+                          (CurrentMp >= WHM_AoEHeals_Cure3MP ||
                            HasStatusEffect(Buffs.ThinAir));
                 return WHM_AoEHeals_Cure3HP;
 
@@ -294,7 +294,13 @@ internal partial class WHM
         };
 
     // Gauge Stuff
-    internal static WHMGauge gauge = GetJobGauge<WHMGauge>();
+    internal static PredictedWhmGauge gauge => new(GetJobGauge<WHMGauge>());
+    internal readonly record struct PredictedWhmGauge(WHMGauge Live)
+    {
+        internal byte Lily => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Lily) ?? Live.Lily);
+        internal byte BloodLily => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.BloodLily) ?? Live.BloodLily);
+        internal short LilyTimer => (short)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Live.LilyTimer) ?? Live.LilyTimer);
+    }
     internal static bool CanLily => gauge.Lily > 0;
     internal static bool FullLily => gauge.Lily == 3;
     internal static bool AlmostFullLily => gauge is { Lily: 2, LilyTimer: >= 12000 };

@@ -105,7 +105,14 @@ internal partial class BRD
     }.ToFrozenDictionary();
 
     // Gauge Stuff
-    internal static BRDGauge? gauge = GetJobGauge<BRDGauge>();
+    internal static PredictedBrdGauge gauge => new(GetJobGauge<BRDGauge>());
+    internal readonly record struct PredictedBrdGauge(BRDGauge Live)
+    {
+        internal ushort SongTimer => (ushort)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Live.SongTimer) ?? Live.SongTimer);
+        internal Song Song => (Song)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, (int)Live.Song) ?? (int)Live.Song);
+        internal byte Repertoire => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Repertoire) ?? Live.Repertoire);
+        internal byte SoulVoice => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.SoulVoice) ?? Live.SoulVoice);
+    }
     internal static int SongTimerInSeconds => gauge.SongTimer / 1000;
     internal static bool SongNone => gauge.Song == Song.None;
     internal static bool SongWanderer => gauge.Song == Song.WanderersMinuet;

@@ -13,7 +13,7 @@ internal static partial class RoleActions
 
         public static bool CanLucidDream(int MPThreshold, bool weave = true) =>
             ActionReady(LucidDreaming) &&
-            LocalPlayer.CurrentMp <= MPThreshold &&
+            CurrentMp <= MPThreshold &&
             (!weave || CanWeave());
 
         public static bool CanSwiftcast(bool weave = true) =>

@@ -1727,7 +1727,7 @@ internal partial class OccultCrescent
 
     private static float TargetHP => GetTargetHPPercent();
     private static float PlayerHP => PlayerHealthPercentageHp();
-    private static uint PlayerMP => LocalPlayer.CurrentMp;
+    private static uint PlayerMP => CurrentMp;
 
     #endregion
 }

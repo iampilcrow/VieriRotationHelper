@@ -278,7 +278,7 @@ internal partial class SMN : Caster
             if (actionID is not (Fester or Necrotize))
                 return actionID;
 
-            SMNGauge gauge = GetJobGauge<SMNGauge>();
+            var gauge = Gauge;
             if (HasStatusEffect(Buffs.FurtherRuin) && IsOnCooldown(EnergyDrain) && !gauge.HasAetherflowStacks && IsEnabled(Preset.SMN_EDFester_Ruin4))
                 return Ruin4;
 
@@ -296,7 +296,7 @@ internal partial class SMN : Caster
             if (actionID is not Painflare)
                 return actionID;
 
-            SMNGauge gauge = GetJobGauge<SMNGauge>();
+            var gauge = Gauge;
 
             if (!ActionLearned(Painflare) || gauge.HasAetherflowStacks)
                 return actionID;

@@ -281,7 +281,7 @@ internal partial class PLD : Tank
                         : SimpleTarget.NearestEnemyOver5YalmsAway.IfWithinRange(ShieldLob.ActionRange())
                     : null);
             
-            if (PLD_ShieldLob_Feature_HolySpirit && ActionLearned(HolySpirit) && GetResourceCost(HolySpirit) <= LocalPlayer.CurrentMp && 
+            if (PLD_ShieldLob_Feature_HolySpirit && ActionLearned(HolySpirit) && GetResourceCost(HolySpirit) <= CurrentMp &&
                 (TimeMoving.Ticks == 0 || HasStatusEffect(Buffs.DivineMight)))
                 return target != null 
                     ? HolySpirit.Retarget(ShieldLob, target)

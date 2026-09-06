@@ -42,6 +42,29 @@ $rdmPrediction = Get-Content (Join-Path $root 'Engine/RdmPredictionState.cs') -R
 $rdmHelper = Get-Content (Join-Path $source 'Combos/PvE/RDM/RDM_Helper.cs') -Raw
 Assert-Contract ($prediction -match 'RdmPredictionState' -and $rdmPrediction -match 'Dualcast' -and $rdmPrediction -match 'VerfireReady' -and $rdmPrediction -match 'AddMana') 'Red Mage forecasts must project Dualcast, procs, and mana instead of re-reading stale live state'
 Assert-Contract ($rdmHelper -match 'PredictionContext\.Current\?\.RdmBlackMana' -and $rdmHelper -match 'PredictionContext\.Current\?\.RdmWhiteMana') 'Red Mage evaluators must consume the projected gauge during forecasts'
+$jobPrediction = Get-Content (Join-Path $root 'Engine/JobPredictionState.cs') -Raw
+$statusPrediction = Get-Content (Join-Path $root 'Engine/PredictionStatusState.cs') -Raw
+$actionEffects = Get-Content (Join-Path $root 'Engine/PredictionActionEffects.Generated.cs') -Raw
+$gaugeJobs = @{
+    19='PLD'; 20='MNK'; 21='WAR'; 22='DRG'; 23='BRD'; 24='WHM'; 25='BLM'; 27='SMN'; 28='SCH';
+    30='NIN'; 31='MCH'; 32='DRK'; 33='AST'; 34='SAM'; 37='GNB'; 38='DNC'; 39='RPR'; 40='SGE'; 41='VPR'; 42='PCT'
+}
+foreach ($entry in $gaugeJobs.GetEnumerator()) {
+    Assert-Contract ($jobPrediction -match "case\s+$($entry.Key):") "$($entry.Value) is not captured by the all-job forecast gauge"
+    Assert-Contract ($jobPrediction -match "case\s+$($entry.Key):\s+Advance$($entry.Value.Substring(0,1).ToUpper()+$entry.Value.Substring(1).ToLower())\(") "$($entry.Value) has no forward gauge transition route"
+}
+$effectCount = ([regex]::Matches($actionEffects, '\[\d+u\]\s*=\s*new\(')).Count
+Assert-Contract ($effectCount -ge 280) "Expected the generated all-job action/status map, found only $effectCount effects"
+Assert-Contract ($prediction -match 'playerStatuses\.Advance\(action\)' -and $prediction -match 'targetStatuses\.AdvanceTarget\(action\)' -and $statusPrediction -match 'PredictedStatus') 'Forecasts must advance player and target statuses through the synthetic status view'
+Assert-Contract ($jobPrediction -match 'AdvanceMch' -and $jobPrediction -match 'ReduceCooldown\(2874, 15\)' -and $jobPrediction -match 'AdvanceDnc' -and $jobPrediction -match 'AdvanceVpr' -and $jobPrediction -match 'AdvancePct') 'Transformation-heavy jobs must retain their explicit forward-state transitions'
+Assert-Contract ($prediction -match 'CurrentMp = jobState\.AdvanceMana' -and $jobPrediction -match 'AdvanceMana' -and $jobPrediction -match 'action == 158') 'Forecasts must project shared MP plus Black Mage phase-sensitive mana'
+Assert-Contract ($jobPrediction -match 'a == 7499.*1233' -and $jobPrediction -match 'a == 7487.*4216' -and $jobPrediction -match 'a == 36966.*4218') 'Samurai forecasts must advance Meikyo and current Tsubame readiness states'
+Assert-Contract ($jobPrediction -match '3632 or 16468 when level >= 62' -and $jobPrediction -match 'statuses\.Has\(742\)') 'Dark Knight forecasts must advance Souleater/Stalwart and Blood Weapon resources'
+Assert-Contract ($jobPrediction -match '3581 or 7427 or 25800 or 25831 or 36992' -and $jobPrediction -match 'Set\(Keys\.Timer2, 15000\)') 'Summoner forecasts must enter projected demi phases'
+Assert-Contract ($jobPrediction -match 'a == 34636 && previous == 34621' -and $jobPrediction -match 'a is 34662 or 34663') 'Viper follow-up venom and Pictomancer white/black paint spends must advance'
+Assert-Contract ($jobPrediction -match '7384 or 16458 or 16459 or 25748 or 25749 or 25750.*Consume\(1368\)') 'Paladin forecasts must consume Requiescat stacks across its spell chain'
+Assert-Contract ($jobPrediction -match 'a == 152.*Remove\(165\)' -and $jobPrediction -match 'category == 3.*Remove\(851\)') 'Black Mage Firestarter and Machinist Reassemble must be consumed by projected actions'
+Assert-Contract ($jobPrediction -match 'a == 24290.*Add\(2606' -and $jobPrediction -match '24293 or 24308 or 24314 or 37032 or 37034.*Remove\(2606\)') 'Sage forecasts must advance Eukrasia into and out of transformed spells'
 $comboState = Get-Content (Join-Path $root 'Engine/PredictedComboState.cs') -Raw
 $traitMap = Get-Content (Join-Path $root 'Engine/TraitReplacementMap.cs') -Raw
 Assert-Contract ($comboState -match 'GetSubrowExcelSheet<ReplaceAction>' -and $comboState -match 'TraitReplacementMap\.Build') 'Combo normalization must load the game-wide replacement table'

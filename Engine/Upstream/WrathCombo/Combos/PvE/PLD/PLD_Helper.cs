@@ -15,13 +15,17 @@ internal partial class PLD
 {
     #region Variables
     
-    private static PLDGauge Gauge => GetJobGauge<PLDGauge>();
+    private static PredictedPldGauge Gauge => new(GetJobGauge<PLDGauge>());
+    private readonly record struct PredictedPldGauge(PLDGauge Live)
+    {
+        internal byte OathGauge => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.OathGauge) ?? Live.OathGauge);
+    }
 
     private static bool HasDivineMight =>
         HasStatusEffect(Buffs.DivineMight);
 
     private static bool HasDivineMagicMP =>
-        LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit);
+        CurrentMp >= GetResourceCost(HolySpirit);
 
     #endregion
 
@@ -80,7 +84,7 @@ internal partial class PLD
 
         //Clemency
         (Clemency, Preset.PLD_Mit_Clemency,
-            () => LocalPlayer.CurrentMp >= 2000 &&
+            () => CurrentMp >= 2000 &&
                   PlayerHealthPercentageHp() <= PLD_Mit_Clemency_Health)
     ];
 
@@ -493,7 +497,7 @@ internal partial class PLD
             flags.HasFlag(Combo.Simple) ? 0 : 
             flags.HasFlag(Combo.ST) ? fightOrFlightThresholdST : fightOrFlightThresholdAoE;
         
-        bool hasRequiescatMPSimple = LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) * 3.6;
+        bool hasRequiescatMPSimple = CurrentMp >= GetResourceCost(HolySpirit) * 3.6;
 
         bool poolCircleForManual = !flags.HasFlag(Combo.Simple) && 
                                 (flags.HasFlag(Combo.ST) && PLD_ST_AdvancedMode_CircleOfScorn_ManualPooling ||
@@ -509,11 +513,11 @@ internal partial class PLD
         
         bool hasRequiescatMpST =
             IsNotEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) && hasRequiescatMPSimple ||
-            IsEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) && LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) * 3.6 + PLD_ST_MP_Reserve;
+            IsEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) && CurrentMp >= GetResourceCost(HolySpirit) * 3.6 + PLD_ST_MP_Reserve;
 
         bool hasRequiescatMpAoE =
             IsNotEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) && hasRequiescatMPSimple ||
-            IsEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) && LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) * 3.6 + PLD_AoE_MP_Reserve;
+            IsEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) && CurrentMp >= GetResourceCost(HolySpirit) * 3.6 + PLD_AoE_MP_Reserve;
         
         bool hasRequiescatMp = 
             flags.HasFlag(Combo.Simple) ? hasRequiescatMPSimple : 
@@ -642,14 +646,14 @@ internal partial class PLD
         #region Configs
         bool isAboveMPReserveAoE =
             IsNotEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) ||
-            IsEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) && LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) + PLD_AoE_MP_Reserve;
+            IsEnabled(Preset.PLD_AoE_AdvancedMode_MP_Reserve) && CurrentMp >= GetResourceCost(HolySpirit) + PLD_AoE_MP_Reserve;
 
         bool isAboveMPReserveST =
             IsNotEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) ||
-            IsEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) && LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) + PLD_ST_MP_Reserve;
+            IsEnabled(Preset.PLD_ST_AdvancedMode_MP_Reserve) && CurrentMp >= GetResourceCost(HolySpirit) + PLD_ST_MP_Reserve;
         
         bool isAboveMPReserve = 
-            flags.HasFlag(Combo.Simple) ? LocalPlayer.CurrentMp >= GetResourceCost(HolySpirit) : 
+            flags.HasFlag(Combo.Simple) ? CurrentMp >= GetResourceCost(HolySpirit) :
             flags.HasFlag(Combo.ST) ? isAboveMPReserveST : isAboveMPReserveAoE;
         
         int goringBladePriority =

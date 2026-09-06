@@ -33,20 +33,20 @@ internal partial class MNK
             // Open Solar
             if (!SolarNadi && LunarNadi)
             {
-                if (Gauge.BeastChakra[0] is BeastChakra.None)
+                if ((BeastChakra)(PredictionContext.Current?.BeastChakra(0, (int)Gauge.BeastChakra[0]) ?? (int)Gauge.BeastChakra[0]) is BeastChakra.None)
                 {
                     actionID = OriginalHook(ArmOfTheDestroyer);
                     return true;
                 }
 
-                if (Gauge.BeastChakra[1] is BeastChakra.None &&
+                if ((BeastChakra)(PredictionContext.Current?.BeastChakra(1, (int)Gauge.BeastChakra[1]) ?? (int)Gauge.BeastChakra[1]) is BeastChakra.None &&
                     ActionLearned(FourPointFury))
                 {
                     actionID = FourPointFury;
                     return true;
                 }
 
-                if (Gauge.BeastChakra[2] is BeastChakra.None)
+                if ((BeastChakra)(PredictionContext.Current?.BeastChakra(2, (int)Gauge.BeastChakra[2]) ?? (int)Gauge.BeastChakra[2]) is BeastChakra.None)
                 {
                     actionID = Rockbreaker;
                     return true;
@@ -66,19 +66,19 @@ internal partial class MNK
         // Open Solar
         if (!SolarNadi && LunarNadi)
         {
-            if (Gauge.BeastChakra[0] is BeastChakra.None)
+            if ((BeastChakra)(PredictionContext.Current?.BeastChakra(0, (int)Gauge.BeastChakra[0]) ?? (int)Gauge.BeastChakra[0]) is BeastChakra.None)
             {
                 actionID = CoeurlFormGCD();
                 return true;
             }
 
-            if (Gauge.BeastChakra[1] is BeastChakra.None)
+            if ((BeastChakra)(PredictionContext.Current?.BeastChakra(1, (int)Gauge.BeastChakra[1]) ?? (int)Gauge.BeastChakra[1]) is BeastChakra.None)
             {
                 actionID = RaptorFormGCD();
                 return true;
             }
 
-            if (Gauge.BeastChakra[2] is BeastChakra.None)
+            if ((BeastChakra)(PredictionContext.Current?.BeastChakra(2, (int)Gauge.BeastChakra[2]) ?? (int)Gauge.BeastChakra[2]) is BeastChakra.None)
             {
                 actionID = OpoFormGCD();
                 return true;
@@ -796,15 +796,15 @@ internal partial class MNK
 
     private static MNKGauge Gauge => GetJobGauge<MNKGauge>();
 
-    private static byte Chakra => Gauge.Chakra;
+    private static byte Chakra => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.Chakra) ?? Gauge.Chakra);
 
-    private static int OpoOpoStacks => Gauge.OpoOpoFury;
+    private static int OpoOpoStacks => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.OpoOpoFury) ?? Gauge.OpoOpoFury;
 
-    private static int RaptorStacks => Gauge.RaptorFury;
+    private static int RaptorStacks => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Tertiary, Gauge.RaptorFury) ?? Gauge.RaptorFury;
 
-    private static int CoeurlStacks => Gauge.CoeurlFury;
+    private static int CoeurlStacks => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Quaternary, Gauge.CoeurlFury) ?? Gauge.CoeurlFury;
 
-    private static Nadi NadiFlag => Gauge.Nadi;
+    private static Nadi NadiFlag => (Nadi)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, (int)Gauge.Nadi) ?? (int)Gauge.Nadi);
 
     private static bool BothNadisOpen => NadiFlag.HasFlag(Nadi.Lunar) && NadiFlag.HasFlag(Nadi.Solar);
 
@@ -812,7 +812,7 @@ internal partial class MNK
 
     private static bool LunarNadi => NadiFlag is Nadi.Lunar;
 
-    private static int BlitzTimer => Gauge.BlitzTimeRemaining / 1000;
+    private static int BlitzTimer => (PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Gauge.BlitzTimeRemaining) ?? Gauge.BlitzTimeRemaining) / 1000;
 
     #endregion
 

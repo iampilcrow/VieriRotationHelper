@@ -91,6 +91,10 @@ namespace WrathCombo.Extensions
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public IStatus? Status(uint id, bool anyOwner = false)
             {
+                if (PredictionContext.Current is { } prediction && prediction.OwnsStatusShadow(chara.GameObjectId))
+                    return prediction.TryGetStatusSnapshot(chara.GameObjectId, id, anyOwner, out var predicted)
+                        ? new PredictedStatus(predicted)
+                        : null;
                 // Determine the source ID for ownership filtering
                 ulong? sourceId = !anyOwner ? Player.Object?.GameObjectId : null;
                 return Service.ComboCache.GetStatus(id, chara, sourceId);

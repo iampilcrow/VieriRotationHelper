@@ -822,13 +822,13 @@ internal partial class MCH
 
     private static MCHGauge Gauge => GetJobGauge<MCHGauge>();
 
-    private static bool IsOverheated => Gauge.IsOverheated;
+    private static bool IsOverheated => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Gauge.IsOverheated) ?? Gauge.IsOverheated;
 
-    private static bool IsRobotActive => Gauge.IsRobotActive;
+    private static bool IsRobotActive => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag2, Gauge.IsRobotActive) ?? Gauge.IsRobotActive;
 
-    private static byte Heat => Gauge.Heat;
+    private static byte Heat => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.Heat) ?? Gauge.Heat);
 
-    private static byte Battery => Gauge.Battery;
+    private static byte Battery => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.Battery) ?? Gauge.Battery);
 
     #endregion
 

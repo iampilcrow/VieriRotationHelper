@@ -77,6 +77,16 @@ internal sealed class RdmPredictionState
         return true;
     }
 
+    internal bool TryGetStatus(uint statusId, out StatusSnapshot status)
+    {
+        if (!KnownStatuses.Contains(statusId))
+        {
+            status = default;
+            return false;
+        }
+        return statuses.TryGetValue(statusId, out status);
+    }
+
     internal void Progress(float seconds)
     {
         if (seconds <= 0)

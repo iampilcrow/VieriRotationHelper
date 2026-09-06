@@ -861,13 +861,13 @@ internal partial class RPR
 
     private static RPRGauge Gauge => GetJobGauge<RPRGauge>();
 
-    private static byte Soul => Gauge.Soul;
+    private static byte Soul => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.Soul) ?? Gauge.Soul);
 
-    private static byte Shroud => Gauge.Shroud;
+    private static byte Shroud => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.Shroud) ?? Gauge.Shroud);
 
-    private static byte Lemure => Gauge.LemureShroud;
+    private static byte Lemure => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Tertiary, Gauge.LemureShroud) ?? Gauge.LemureShroud);
 
-    private static byte Void => Gauge.VoidShroud;
+    private static byte Void => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Quaternary, Gauge.VoidShroud) ?? Gauge.VoidShroud);
 
     #endregion
 

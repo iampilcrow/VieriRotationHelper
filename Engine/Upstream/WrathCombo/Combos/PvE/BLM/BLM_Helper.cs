@@ -833,23 +833,23 @@ internal partial class BLM
 
     private static BLMGauge Gauge => GetJobGauge<BLMGauge>();
 
-    private static bool IsInFirePhase => Gauge.InAstralFire;
+    private static bool IsInFirePhase => AstralFireStacks > 0;
 
-    private static byte AstralFireStacks => Gauge.AstralFireStacks;
+    private static byte AstralFireStacks => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Gauge.AstralFireStacks) ?? Gauge.AstralFireStacks);
 
-    private static bool IsInIcePhase => Gauge.InUmbralIce;
+    private static bool IsInIcePhase => UmbralIceStacks > 0;
 
-    private static byte UmbralIceStacks => Gauge.UmbralIceStacks;
+    private static byte UmbralIceStacks => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Gauge.UmbralIceStacks) ?? Gauge.UmbralIceStacks);
 
-    private static byte UmbralHearts => Gauge.UmbralHearts;
+    private static byte UmbralHearts => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Tertiary, Gauge.UmbralHearts) ?? Gauge.UmbralHearts);
 
-    private static bool IsParadoxActive => Gauge.IsParadoxActive;
+    private static bool IsParadoxActive => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Gauge.IsParadoxActive) ?? Gauge.IsParadoxActive;
 
-    private static int AstralSoulStacks => Gauge.AstralSoulStacks;
+    private static int AstralSoulStacks => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Quaternary, Gauge.AstralSoulStacks) ?? Gauge.AstralSoulStacks;
 
-    private static byte PolyglotStacks => Gauge.PolyglotStacks;
+    private static byte PolyglotStacks => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Extra, Gauge.PolyglotStacks) ?? Gauge.PolyglotStacks);
 
-    private static int PolyglotTimer => Gauge.EnochianTimer / 1000;
+    private static int PolyglotTimer => (PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Gauge.EnochianTimer) ?? Gauge.EnochianTimer) / 1000;
 
     private static class MP
     {
@@ -857,7 +857,7 @@ internal partial class BLM
 
         internal static bool Full => Max == Cur;
 
-        internal static unsafe uint Cur => Player.Character->Mana;
+        internal static uint Cur => CurrentMp;
 
         internal static int FireI => GetResourceCost(OriginalHook(Fire));
 

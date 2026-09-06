@@ -21,6 +21,9 @@ internal abstract partial class CustomComboFunctions
     /// <summary> Gets the player or null. </summary>
     public static IPlayerCharacter? LocalPlayer => Player.Object;
 
+    /// <summary>Gets forecast mana while building future suggestions, otherwise live mana.</summary>
+    public static uint CurrentMp => PredictionContext.Current?.CurrentMp ?? LocalPlayer?.CurrentMp ?? 0;
+
     /// <summary> Find if the player has a certain condition. </summary>
     /// <param name="flag"> Condition flag. </param>
     /// <returns> A value indicating whether the player is in the condition. </returns>

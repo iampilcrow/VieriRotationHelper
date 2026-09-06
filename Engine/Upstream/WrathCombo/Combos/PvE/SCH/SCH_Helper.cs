@@ -33,7 +33,14 @@ internal partial class SCH
         ReplacedActionsList = [Ruin, Broil, Broil2, Broil3, Broil4, Bio, Biolysis, Bio2, Ruin2, Succor, Concitation, Accession, Physick, ArtOfWar, ArtOfWarII], //Used for Hidden Features Retarget Sacred Soil
         FairyList = [WhisperingDawn, FeyBlessing, FeyIllumination, Dissipation, Aetherpact, SummonSeraph, Seraphism];
     #endregion
-    internal static SCHGauge Gauge => GetJobGauge<SCHGauge>();
+    internal static PredictedSchGauge Gauge => new(GetJobGauge<SCHGauge>());
+    internal readonly record struct PredictedSchGauge(SCHGauge Live)
+    {
+        internal byte Aetherflow => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Aetherflow) ?? Live.Aetherflow);
+        internal byte FairyGauge => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.FairyGauge) ?? Live.FairyGauge);
+        internal short SeraphTimer => (short)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Timer, Live.SeraphTimer) ?? Live.SeraphTimer);
+        internal int DismissedFairy => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Live.DismissedFairy > 0) == true ? 1 : 0;
+    }
     internal static IBattleChara? AetherPactTarget =>
         Svc.Objects.Where(x => x is IBattleChara chara && chara.StatusList
                    .Any(y => y.StatusId == 1223 && y.SourceObject.GameObjectId == Svc.Buddies.PetBuddy.GameObject.GameObjectId))

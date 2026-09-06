@@ -37,7 +37,15 @@ internal partial class DNC
     /// <summary>
     ///     Dancer Gauge data, just consolidated.
     /// </summary>
-    private static DNCGauge Gauge => GetJobGauge<DNCGauge>();
+    private static PredictedDncGauge Gauge => new(GetJobGauge<DNCGauge>());
+    private readonly record struct PredictedDncGauge(DNCGauge Live)
+    {
+        internal byte Feathers => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Primary, Live.Feathers) ?? Live.Feathers);
+        internal byte Esprit => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Secondary, Live.Esprit) ?? Live.Esprit);
+        internal byte CompletedSteps => (byte)(PredictionContext.Current?.Gauge(JobPredictionState.Keys.Step, Live.CompletedSteps) ?? Live.CompletedSteps);
+        internal bool IsDancing => PredictionContext.Current?.Gauge(JobPredictionState.Keys.Flag, Live.IsDancing) ?? Live.IsDancing;
+        internal uint NextStep => PredictionContext.Current?.DanceNextStep(Live.NextStep) ?? Live.NextStep;
+    }
 
     /// <summary>
     ///     DNC's GCD, truncated to two decimal places.

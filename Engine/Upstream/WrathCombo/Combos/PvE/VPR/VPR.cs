@@ -427,10 +427,10 @@ internal partial class VPR : Melee
 
             return actionID switch
             {
-                SteelFangs when Gauge.SerpentCombo is SerpentCombo.FirstLegacy => OriginalHook(SerpentsTail),
-                ReavingFangs when Gauge.SerpentCombo is SerpentCombo.SecondLegacy => OriginalHook(SerpentsTail),
-                HuntersCoil when Gauge.SerpentCombo is SerpentCombo.ThirdLegacy => OriginalHook(SerpentsTail),
-                SwiftskinsCoil when Gauge.SerpentCombo is SerpentCombo.FourthLegacy => OriginalHook(SerpentsTail),
+                SteelFangs when SerpentCombo is SerpentCombo.FirstLegacy => OriginalHook(SerpentsTail),
+                ReavingFangs when SerpentCombo is SerpentCombo.SecondLegacy => OriginalHook(SerpentsTail),
+                HuntersCoil when SerpentCombo is SerpentCombo.ThirdLegacy => OriginalHook(SerpentsTail),
+                SwiftskinsCoil when SerpentCombo is SerpentCombo.FourthLegacy => OriginalHook(SerpentsTail),
                 _ => actionID
             };
         }
