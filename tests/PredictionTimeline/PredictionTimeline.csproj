@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Engine/TraitReplacementMap.cs" Link="TraitReplacementMap.cs" />
+    <Compile Include="../../Engine/RdmPredictionState.cs" Link="RdmPredictionState.cs" />
   </ItemGroup>
 </Project>

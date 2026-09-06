@@ -48,6 +48,9 @@ internal abstract partial class CustomComboFunctions
     {
         // Default to LocalPlayer if no target provided
         target ??= LocalPlayer;
+        if (target.GameObjectId == LocalPlayer.GameObjectId &&
+            PredictionContext.Current?.TryGetPlayerStatus(statusId, out var predicted) == true)
+            return predicted;
         return GetStatusEffect(statusId, target, anyOwner) is not null;
     }
 
@@ -124,8 +127,14 @@ internal abstract partial class CustomComboFunctions
     /// <param name="anyOwner">Check if the Player owns/created the status, true means anyone owns</param>
     /// <returns>Float representing remaining status effect time</returns>
     [Obsolete("Use the IBattleChara & IStatus? extensions .Status(id, anyowner).RemainingTimeOrNaN() (fails comparison if status does not exist) or .RemainingTimeOrZero()")]
-    public unsafe static float GetStatusEffectRemainingTime(uint effectId, IGameObject? target = null, bool anyOwner = false) =>
-        GetStatusEffectRemainingTime(GetStatusEffect(effectId, target, anyOwner));
+    public unsafe static float GetStatusEffectRemainingTime(uint effectId, IGameObject? target = null, bool anyOwner = false)
+    {
+        target ??= LocalPlayer;
+        if (target.GameObjectId == LocalPlayer.GameObjectId &&
+            PredictionContext.Current?.TryGetPlayerStatusRemaining(effectId, out var predicted) == true)
+            return predicted;
+        return GetStatusEffectRemainingTime(GetStatusEffect(effectId, target, anyOwner));
+    }
 
     /// <summary>
     ///     Same as <see cref="GetStatusEffectRemainingTime(ushort, IGameObject?, bool)"/>,

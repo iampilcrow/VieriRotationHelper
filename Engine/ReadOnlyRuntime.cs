@@ -171,7 +171,7 @@ public sealed class ReadOnlyRuntime : IDisposable
         if (leadAction == 0 || totalCount <= 1 ||
             leadAction > Combos.PvE.All.Items && leadAction < Combos.PvE.All.Pomanders) return [];
         var result = new List<Decision>(totalCount - 1);
-        using var timeline = PredictionContext.Begin();
+        using var timeline = PredictionContext.Begin(job);
         var prior = leadAction;
         for (var i = 1; i < totalCount; i++)
         {

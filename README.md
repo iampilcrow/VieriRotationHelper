@@ -21,7 +21,10 @@ appear on the bars. Open settings and hover an icon for names/diagnostics.
 - Action replacement, Auto-Rotation, targeting, retargeting, IPC leases, and
   advanced job settings are provided directly by VieriRotationHelper. The
   separate Wrath Combo plugin is not required.
-- Forecast icons use a thread-local shadow combat timeline. Game actions,
+- Forecast icons use a thread-local shadow combat timeline. It advances shared
+  combo/cooldown/action history for every job and Red Mage's Dualcast, procs,
+  black/white mana, and mana stacks, so all three bars show the next decisions
+  instead of repeating the current spell against stale state. Game actions,
   movement, targeting, retargeting, configuration writes, and item use are
   suppressed while that forecast is calculated, without disabling those
   features for the live rotation engine.

@@ -34,10 +34,14 @@ foreach ($job in $jobs) {
 Assert-Contract ($runtime -match 'Active => PredictionContext\.Current != null') 'Prediction safety must be scoped to the forecast thread'
 Assert-Contract ($runtime -match 'combo.Suggest\(entry\)' -and $runtime -notmatch '\.TryInvoke\(') 'Selection must not be gated by Wrath enabled state or IPC action requests'
 Assert-Contract ($runtime -match 'new WrathCombo\(pluginInterface\)' -and $runtime -match 'Service\.ActionReplacer\.OriginalHook') 'Suite must host the full engine and retain the native resolver for suggestions'
-Assert-Contract ($runtime -match 'PredictionContext\.Begin\(\)' -and $runtime -match 'timeline\.Advance\(prior\)') 'Forecast must advance an isolated timeline before every future Wrath decision'
+Assert-Contract ($runtime -match 'PredictionContext\.Begin\(job\)' -and $runtime -match 'timeline\.Advance\(prior\)') 'Forecast must advance an isolated job-aware timeline before every future Wrath decision'
 Assert-Contract ($provider -match 'runtime\.Forecast' -and $provider -notmatch 'SingleTargetCombo|AoeCombo|Array\.IndexOf') 'Preview cannot fall back to a hard-coded basic combo list'
 Assert-Contract ($prediction -match 'ComboAction' -and $prediction -match 'CooldownRemaining' -and $prediction -match 'RemainingGcd' -and $prediction -match 'Weaves') 'Prediction timeline must project combo, cooldown and weave state'
 Assert-Contract ($prediction -notmatch 'UseAction\(|SetTarget|QueuedActionId\s*=') 'Prediction timeline cannot issue actions, retarget, or alter queues'
+$rdmPrediction = Get-Content (Join-Path $root 'Engine/RdmPredictionState.cs') -Raw
+$rdmHelper = Get-Content (Join-Path $source 'Combos/PvE/RDM/RDM_Helper.cs') -Raw
+Assert-Contract ($prediction -match 'RdmPredictionState' -and $rdmPrediction -match 'Dualcast' -and $rdmPrediction -match 'VerfireReady' -and $rdmPrediction -match 'AddMana') 'Red Mage forecasts must project Dualcast, procs, and mana instead of re-reading stale live state'
+Assert-Contract ($rdmHelper -match 'PredictionContext\.Current\?\.RdmBlackMana' -and $rdmHelper -match 'PredictionContext\.Current\?\.RdmWhiteMana') 'Red Mage evaluators must consume the projected gauge during forecasts'
 $comboState = Get-Content (Join-Path $root 'Engine/PredictedComboState.cs') -Raw
 $traitMap = Get-Content (Join-Path $root 'Engine/TraitReplacementMap.cs') -Raw
 Assert-Contract ($comboState -match 'GetSubrowExcelSheet<ReplaceAction>' -and $comboState -match 'TraitReplacementMap\.Build') 'Combo normalization must load the game-wide replacement table'

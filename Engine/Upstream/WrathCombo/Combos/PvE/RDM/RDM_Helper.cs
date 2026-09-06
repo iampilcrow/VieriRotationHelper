@@ -118,16 +118,19 @@ internal partial class RDM
 
     // Gauge Stuff
     private static RDMGauge Gauge => GetJobGauge<RDMGauge>();
-    internal static bool BlackHigher => Gauge.BlackMana >= Gauge.WhiteMana;
-    internal static bool WhiteHigher => Gauge.BlackMana < Gauge.WhiteMana;
-    internal static bool HasEnoughManaToStart => Gauge.BlackMana >= ManaLevel() && Gauge.WhiteMana >= ManaLevel();
-    internal static bool HasEnoughManaToStartStandalone => Gauge.BlackMana >= ManaLevelStandalone() && Gauge.WhiteMana >= ManaLevelStandalone();
-    internal static bool HasEnoughManaForCombo => Gauge is { BlackMana: >= 15, WhiteMana: >= 15 };
-    internal static bool HasManaStacks => Gauge.ManaStacks == 3;
-    internal static bool CanFlare => BlackHigher && Gauge.BlackMana - Gauge.WhiteMana < 18;
-    internal static bool CanHoly => WhiteHigher && Gauge.WhiteMana - Gauge.BlackMana < 18;
-    internal static bool RedoublementRepriseMana => Gauge is { WhiteMana: >= 20, BlackMana: >= 20 };
-    internal static bool ZwerchhauRepriseMana => Gauge is { WhiteMana: >= 35, BlackMana: >= 35 };
+    private static int BlackMana => PredictionContext.Current?.RdmBlackMana(Gauge.BlackMana) ?? Gauge.BlackMana;
+    private static int WhiteMana => PredictionContext.Current?.RdmWhiteMana(Gauge.WhiteMana) ?? Gauge.WhiteMana;
+    private static int ManaStacks => PredictionContext.Current?.RdmManaStacks(Gauge.ManaStacks) ?? Gauge.ManaStacks;
+    internal static bool BlackHigher => BlackMana >= WhiteMana;
+    internal static bool WhiteHigher => BlackMana < WhiteMana;
+    internal static bool HasEnoughManaToStart => BlackMana >= ManaLevel() && WhiteMana >= ManaLevel();
+    internal static bool HasEnoughManaToStartStandalone => BlackMana >= ManaLevelStandalone() && WhiteMana >= ManaLevelStandalone();
+    internal static bool HasEnoughManaForCombo => BlackMana >= 15 && WhiteMana >= 15;
+    internal static bool HasManaStacks => ManaStacks == 3;
+    internal static bool CanFlare => BlackHigher && BlackMana - WhiteMana < 18;
+    internal static bool CanHoly => WhiteHigher && WhiteMana - BlackMana < 18;
+    internal static bool RedoublementRepriseMana => WhiteMana >= 20 && BlackMana >= 20;
+    internal static bool ZwerchhauRepriseMana => WhiteMana >= 35 && BlackMana >= 35;
 
     //Floats
     internal static float EmboldenCD => GetCooldownRemainingTime(Embolden);

@@ -1,7 +1,10 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Dalamud.Game.ClientState.JobGauge.Types;
+using ECommons.GameHelpers;
 using System;
 using System.Collections.Generic;
 using WrathCombo.Data;
+using WrathCombo.Services;
 
 namespace WrathCombo;
 
@@ -20,6 +23,7 @@ internal sealed class PredictionContext : IDisposable
     private readonly List<uint> actions = [];
     private readonly List<uint> weaves = [];
     private readonly float gcdTotal;
+    private readonly RdmPredictionState? rdm;
     private float elapsed;
 
     internal uint ComboAction { get; private set; }
@@ -30,7 +34,7 @@ internal sealed class PredictionContext : IDisposable
     internal uint LastAction => actions.Count == 0 ? 0 : actions[^1];
     internal float GcdTotal => gcdTotal;
 
-    private unsafe PredictionContext()
+    private unsafe PredictionContext(uint job)
     {
         var manager = ActionManager.Instance();
         ComboAction = manager == null ? 0 : manager->Combo.Action;
@@ -39,13 +43,22 @@ internal sealed class PredictionContext : IDisposable
         var gcd = manager == null ? null : manager->GetRecastGroupDetail(57);
         gcdTotal = gcd == null || gcd->Total <= 0 ? 2.5f : gcd->Total;
         RemainingGcd = gcd == null ? 0 : Math.Max(0, gcd->Total - gcd->Elapsed);
+
+        if (job == 35)
+        {
+            var gauge = Service.ComboCache.GetJobGauge<RDMGauge>();
+            var statuses = new List<RdmPredictionState.StatusSnapshot>();
+            foreach (var status in Player.Status)
+                statuses.Add(new(status.StatusId, Math.Max(0, status.RemainingTime), status.Param));
+            rdm = new RdmPredictionState(gauge.BlackMana, gauge.WhiteMana, gauge.ManaStacks, statuses);
+        }
     }
 
-    internal static PredictionContext Begin()
+    internal static PredictionContext Begin(uint job)
     {
         if (current != null)
             throw new InvalidOperationException("A prediction timeline is already active.");
-        return current = new PredictionContext();
+        return current = new PredictionContext(job);
     }
 
     internal unsafe void Advance(uint encodedAction)
@@ -60,6 +73,7 @@ internal sealed class PredictionContext : IDisposable
         var step = ability ? CustomComboNS.Functions.CustomComboFunctions.BaseAnimationLock : Math.Max(RemainingGcd, .1f);
         Progress(step);
         actions.Add(action);
+        rdm?.Advance(action, row.Cast100ms + row.ExtraCastTime100ms > 0);
 
         var manager = ActionManager.Instance();
         var maximumCharges = manager == null ? (ushort)1 : ActionManager.GetMaxCharges(action, 0);
@@ -94,6 +108,26 @@ internal sealed class PredictionContext : IDisposable
 
     internal void RestoreDisplayedComboAction(uint action) => ComboAction = action;
 
+    internal int RdmBlackMana(int live) => rdm?.BlackMana ?? live;
+    internal int RdmWhiteMana(int live) => rdm?.WhiteMana ?? live;
+    internal int RdmManaStacks(int live) => rdm?.ManaStacks ?? live;
+
+    internal bool TryGetPlayerStatus(uint statusId, out bool present)
+    {
+        if (rdm != null)
+            return rdm.TryHasStatus(statusId, out present);
+        present = false;
+        return false;
+    }
+
+    internal bool TryGetPlayerStatusRemaining(uint statusId, out float remaining)
+    {
+        if (rdm != null)
+            return rdm.TryGetStatusRemaining(statusId, out remaining);
+        remaining = 0;
+        return false;
+    }
+
     internal bool IsGlobalCooldownAction(uint encodedAction)
     {
         var action = encodedAction > Combos.PvE.All.Items && encodedAction < Combos.PvE.All.Pomanders
@@ -122,6 +156,7 @@ internal sealed class PredictionContext : IDisposable
     {
         elapsed += seconds;
         ComboTimer = Math.Max(0, ComboTimer - seconds);
+        rdm?.Progress(seconds);
         foreach (var action in new List<uint>(cooldowns.Keys))
             cooldowns[action] = Math.Max(0, cooldowns[action] - seconds);
     }

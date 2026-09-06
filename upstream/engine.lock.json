@@ -15,6 +15,7 @@
     "Wrath configuration stored inside the VieriRotationHelper root configuration",
     "Isolated engine assembly names with exact WrathCombo IPC compatibility",
     "Embedded VieriWrathSwitch with exact legacy command and BeginAutomation compatibility",
-    "Hilda-style isolated forward timeline for multi-action Wrath forecasts"
+    "Hilda-style isolated forward timeline for multi-action Wrath forecasts",
+    "Deterministic Red Mage Dualcast, proc, mana, and mana-stack shadow state"
   ]
 }
