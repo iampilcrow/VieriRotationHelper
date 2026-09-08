@@ -68,6 +68,9 @@ internal sealed class RotationBarWindow : Window
 
     private unsafe void DrawAction(RotationSuggestion suggestion, RotationFrame frame, Vector2 pos, float size, float scale, bool lead)
     {
+        if (NativeUiOcclusion.IsCovered(pos, new Vector2(size + scale, size + 4f * scale)))
+            return;
+
         var info = display.Get(suggestion.ActionId);
         if (info.Icon == 0)
             return;

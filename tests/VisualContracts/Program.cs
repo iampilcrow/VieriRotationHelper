@@ -36,6 +36,12 @@ Check(overlayGate.Evaluate(true, true, true, false, 770), "Overlays appear after
 Check(!overlayGate.Evaluate(true, true, true, true, 800), "A new loading transition immediately hides overlays");
 Check(!overlayGate.Evaluate(true, true, true, false, 900), "A new area starts a fresh settle period");
 Check(overlayGate.Evaluate(true, true, true, false, 1650), "Overlays return after the new area is stable");
+Check(NativeUiOcclusionPolicy.Overlaps(new Vector2(100, 100), new Vector2(50, 50), new Vector2(120, 80), new Vector2(200, 130)),
+    "Suggestion icons hide when a native FFXIV window overlaps them");
+Check(!NativeUiOcclusionPolicy.Overlaps(new Vector2(100, 100), new Vector2(50, 50), new Vector2(150, 80), new Vector2(200, 100)),
+    "Touching a native window edge without overlap does not hide the suggestion icon");
+Check(!NativeUiOcclusionPolicy.Overlaps(new Vector2(100, 100), Vector2.Zero, new Vector2(90, 90), new Vector2(200, 200)),
+    "Empty suggestion bounds never report native UI occlusion");
 Check(HildaVisualStyle.Position(0, 65, 50, 3, true) == new Vector2(20, 20), "Hilda lead origin");
 Check(HildaVisualStyle.Position(1, 65, 50, 3, true) == new Vector2(91, 27.5f), "Hilda second icon and vertical centering");
 Check(HildaVisualStyle.Position(2, 65, 50, 3, true) == new Vector2(147, 27.5f), "Hilda third icon spacing");
